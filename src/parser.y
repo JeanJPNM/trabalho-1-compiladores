@@ -29,8 +29,8 @@
 %locations
 
 
-%token <AST::Identifier *> IDENTIFIER
-%token <AST::NumberLiteral *> NUMBER
+%token <AST::Identifier *> IDENTIFIER "id"
+%token <AST::NumberLiteral *> NUMBER "num"
 %token K_PROGRAM "program"
 %token K_BEGIN "begin"
 %token K_END "end"

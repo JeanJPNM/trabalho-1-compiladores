@@ -56,6 +56,23 @@ int Driver::parse(const std::string &filename)
   return res;
 }
 
+void Driver::consume_all_tokens(const std::string &filename)
+{
+  this->filename = filename;
+  location.initialize(&this->filename);
+
+  scan_begin();
+
+  while (true)
+  {
+    auto token = yylex(*this);
+    if (token.kind() == yy::parser::symbol_kind::S_YYEOF)
+      break;
+  }
+
+  scan_end();
+}
+
 void Driver::track_node(AST::Node *node)
 {
   nodes.emplace_back(node);
@@ -65,7 +82,13 @@ void Driver::log_token(const yy::parser::symbol_type &token, const std::string &
 {
   if (!trace_tokens)
     return;
-  std::cout << token.name() << " - " << source << std::endl;
+
+  const char *name;
+  if (token.kind() == yy::parser::symbol_kind::S_YYUNDEF)
+    name = "erro";
+  else
+    name = token.name();
+  std::cout << source << " - " << name << std::endl;
 }
 
 yy::parser::symbol_type Driver::make_keyword_or_identifier(const std::string &s)
@@ -114,5 +137,13 @@ yy::parser::symbol_type Driver::make_token(const std::string &s)
                          : yy::parser::make_YYerror(location);
 
   log_token(token, s);
+  return token;
+}
+
+yy::parser::symbol_type Driver::make_error(const std::string &s)
+{
+  auto token = yy::parser::make_YYUNDEF(location);
+  log_token(token, s);
+
   return token;
 }

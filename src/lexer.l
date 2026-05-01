@@ -40,7 +40,7 @@
 }
 
 . {
-  return yy::parser::make_YYerror(loc);
+  return driver.make_error(yytext);
 }
 
 <<EOF>> {

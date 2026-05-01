@@ -5,11 +5,7 @@ int main()
 {
 
   Driver driver;
-  int res = driver.parse("input.txt");
-  if (res == 0)
-    std::cout << "Parsing successful!" << std::endl;
-  else
-    std::cout << "Parsing failed with code " << res << std::endl;
+  driver.trace_tokens = true;
 
-  return res;
+  driver.consume_all_tokens("input.txt");
 }
