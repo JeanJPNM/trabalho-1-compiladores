@@ -1,8 +1,11 @@
-all: lexer parser
-	g++ main.cpp lex.yy.c parser.tab.c -g -o main -lfl
+all: mkgen parser lexer
+	g++ src/*.cpp src/gen/*.cpp -I src/gen -I src -g -o main -lfl
+
+mkgen:
+	mkdir -p src/gen
 
 lexer:
-	flex lexer.l
+	flex -o src/gen/lexer.cpp src/lexer.l
 
 parser:
-	bison -d parser.y -v
+	bison -d src/parser.y -v -o src/gen/parser.cpp

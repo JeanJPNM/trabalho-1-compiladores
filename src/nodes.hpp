@@ -18,12 +18,12 @@ namespace AST
   class VariableDeclaration;
   class ParameterDeclaration;
   class ProcedureDeclaration;
-  class DeclarationList;
 
   class Statement;
   class ReadStatement;
   class WriteStatement;
   class CallStatement;
+  class IdentifierStatement;
   class IfStatement;
   class WhileStatement;
   class ForStatement;
@@ -42,10 +42,10 @@ namespace AST
   class Expression : public Node
   {
   public:
-    virtual Identifier *asIdentifier();
-    virtual NumberLiteral *asNumberLiteral();
-    virtual UnaryExpression *asUnaryExpression();
-    virtual BinaryExpression *asBinaryExpression();
+    virtual Identifier *asIdentifier() { return nullptr; }
+    virtual NumberLiteral *asNumberLiteral() { return nullptr; }
+    virtual UnaryExpression *asUnaryExpression() { return nullptr; }
+    virtual BinaryExpression *asBinaryExpression() { return nullptr; }
   };
 
   class Identifier : public Expression
@@ -54,7 +54,7 @@ namespace AST
     std::string name;
     Identifier(std::string name) : name(name) {}
 
-    Identifier *asIdentifier() override;
+    Identifier *asIdentifier() override { return this; }
   };
 
   class NumberLiteral : public Expression
@@ -63,13 +63,13 @@ namespace AST
     double value;
     NumberLiteral(double value) : value(value) {}
 
-    NumberLiteral *asNumberLiteral() override;
+    NumberLiteral *asNumberLiteral() override { return this; }
   };
 
   enum class UnaryOperator
   {
-    NEGATE,
-    NOT
+    PLUS,
+    MINUS
   };
 
   class UnaryExpression : public Expression
@@ -81,9 +81,7 @@ namespace AST
     UnaryExpression(UnaryOperator op, Expression *operand)
         : op(op), operand(operand) {}
 
-    ~UnaryExpression();
-
-    UnaryExpression *asUnaryExpression() override;
+    UnaryExpression *asUnaryExpression() override { return this; }
   };
 
   enum class BinaryOperator
@@ -92,8 +90,6 @@ namespace AST
     SUBTRACT,
     MULTIPLY,
     DIVIDE,
-    AND,
-    OR
   };
 
   class BinaryExpression : public Expression
@@ -102,19 +98,18 @@ namespace AST
     BinaryOperator op;
     Expression *left, *right;
 
-    BinaryExpression(BinaryOperator op, Expression *left, Expression *right)
-        : op(op), left(left), right(right) {}
-    ~BinaryExpression();
+    BinaryExpression(Expression *left, BinaryOperator op, Expression *right)
+        : left(left), op(op), right(right) {}
 
-    BinaryExpression *asBinaryExpression() override;
+    BinaryExpression *asBinaryExpression() override { return this; }
   };
 
   class Declaration : public Node
   {
   public:
-    virtual ConstantDeclaration *asConstantDeclaration();
-    virtual VariableDeclaration *asVariableDeclaration();
-    virtual ProcedureDeclaration *asProcedureDeclaration();
+    virtual ConstantDeclaration *asConstantDeclaration() { return nullptr; }
+    virtual VariableDeclaration *asVariableDeclaration() { return nullptr; }
+    virtual ProcedureDeclaration *asProcedureDeclaration() { return nullptr; }
   };
 
   class ConstantDeclaration : public Declaration
@@ -124,9 +119,8 @@ namespace AST
     NumberLiteral *value;
     ConstantDeclaration(Identifier *identifier, NumberLiteral *value)
         : identifier(identifier), value(value) {}
-    ~ConstantDeclaration();
 
-    ConstantDeclaration *asConstantDeclaration() override;
+    ConstantDeclaration *asConstantDeclaration() override { return this; }
   };
 
   enum class VariableType
@@ -145,14 +139,13 @@ namespace AST
   class VariableDeclaration : public Declaration
   {
   public:
-    TypeAnnotation *typeAnnotation;
     std::vector<Identifier *> identifiers;
+    TypeAnnotation *typeAnnotation;
 
-    VariableDeclaration(TypeAnnotation *typeAnnotation, std::vector<Identifier *> identifiers)
-        : typeAnnotation(typeAnnotation), identifiers(identifiers) {}
-    ~VariableDeclaration();
+    VariableDeclaration(std::vector<Identifier *> identifiers, TypeAnnotation *typeAnnotation)
+        : identifiers(identifiers), typeAnnotation(typeAnnotation) {}
 
-    VariableDeclaration *asVariableDeclaration() override;
+    VariableDeclaration *asVariableDeclaration() override { return this; }
   };
 
   // não precisa herdar de Declaration porque é usado
@@ -160,53 +153,46 @@ namespace AST
   class ParameterDeclaration : public Node
   {
   public:
-    Identifier *identifier;
+    std::vector<Identifier *> identifiers;
     TypeAnnotation *typeAnnotation;
 
-    ParameterDeclaration(Identifier *identifier, TypeAnnotation *typeAnnotation)
-        : identifier(identifier), typeAnnotation(typeAnnotation) {}
-    ~ParameterDeclaration();
+    ParameterDeclaration(std::vector<Identifier *> identifiers, TypeAnnotation *typeAnnotation)
+        : identifiers(identifiers), typeAnnotation(typeAnnotation) {}
   };
 
   class ProcedureDeclaration : public Declaration
   {
   public:
+    Identifier *name;
     std::vector<ParameterDeclaration *> parameters;
     std::vector<VariableDeclaration *> localVariables;
     Block *body;
 
     ProcedureDeclaration(
+        Identifier *name,
         std::vector<ParameterDeclaration *> parameters,
         std::vector<VariableDeclaration *> localVariables,
         Block *body)
-        : parameters(parameters),
+        : name(name),
+          parameters(parameters),
           localVariables(localVariables),
           body(body) {}
 
-    ~ProcedureDeclaration();
-
-    ProcedureDeclaration *asProcedureDeclaration() override;
-  };
-
-  class DeclarationList : public Node
-  {
-  public:
-    std::vector<Declaration *> declarations;
-    DeclarationList(std::vector<Declaration *> declarations) : declarations(declarations) {}
-    ~DeclarationList();
+    ProcedureDeclaration *asProcedureDeclaration() override { return this; }
   };
 
   class Statement : public Node
   {
   public:
-    virtual ReadStatement *asReadStatement();
-    virtual WriteStatement *asWriteStatement();
-    virtual CallStatement *asCallStatement();
-    virtual IfStatement *asIfStatement();
-    virtual WhileStatement *asWhileStatement();
-    virtual ForStatement *asForStatement();
-    virtual VariableAssignment *asVariableAssignment();
-    virtual Block *asBlock();
+    virtual ReadStatement *asReadStatement() { return nullptr; }
+    virtual WriteStatement *asWriteStatement() { return nullptr; }
+    virtual CallStatement *asCallStatement() { return nullptr; }
+    virtual IdentifierStatement *asIdentifierStatement() { return nullptr; }
+    virtual IfStatement *asIfStatement() { return nullptr; }
+    virtual WhileStatement *asWhileStatement() { return nullptr; }
+    virtual ForStatement *asForStatement() { return nullptr; }
+    virtual VariableAssignment *asVariableAssignment() { return nullptr; }
+    virtual Block *asBlock() { return nullptr; }
   };
 
   enum class ComparisonOperator
@@ -227,8 +213,6 @@ namespace AST
 
     Condition(Expression *left, ComparisonOperator op, Expression *right)
         : left(left), op(op), right(right) {}
-
-    ~Condition();
   };
 
   class ReadStatement : public Statement
@@ -237,9 +221,8 @@ namespace AST
     std::vector<Identifier *> variables;
 
     ReadStatement(std::vector<Identifier *> variables) : variables(variables) {}
-    ~ReadStatement();
 
-    ReadStatement *asReadStatement() override;
+    ReadStatement *asReadStatement() override { return this; }
   };
 
   // isso poderia ser uma chamada de função, mas a spec especifica ela como uma
@@ -251,9 +234,8 @@ namespace AST
     std::vector<Identifier *> variables;
 
     WriteStatement(std::vector<Identifier *> variables) : variables(variables) {}
-    ~WriteStatement();
 
-    WriteStatement *asWriteStatement() override;
+    WriteStatement *asWriteStatement() override { return this; }
   };
 
   class CallStatement : public Statement
@@ -264,9 +246,17 @@ namespace AST
 
     CallStatement(Identifier *procedureName, std::vector<Identifier *> arguments)
         : procedureName(procedureName), arguments(arguments) {}
-    ~CallStatement();
 
-    CallStatement *asCallStatement() override;
+    CallStatement *asCallStatement() override { return this; }
+  };
+
+  class IdentifierStatement : public Statement
+  {
+  public:
+    Identifier *identifier;
+    IdentifierStatement(Identifier *identifier) : identifier(identifier) {}
+
+    IdentifierStatement *asIdentifierStatement() override { return this; }
   };
 
   class IfStatement : public Statement
@@ -279,9 +269,8 @@ namespace AST
 
     IfStatement(Condition *condition, Statement *consequent, Statement *alternate)
         : condition(condition), consequent(consequent), alternate(alternate) {}
-    ~IfStatement();
 
-    IfStatement *asIfStatement() override;
+    IfStatement *asIfStatement() override { return this; }
   };
 
   class WhileStatement : public Statement
@@ -292,9 +281,8 @@ namespace AST
 
     WhileStatement(Condition *condition, Statement *body)
         : condition(condition), body(body) {}
-    ~WhileStatement();
 
-    WhileStatement *asWhileStatement() override;
+    WhileStatement *asWhileStatement() override { return this; }
   };
 
   class ForStatement : public Statement
@@ -312,9 +300,7 @@ namespace AST
           target(target),
           body(body) {}
 
-    ~ForStatement();
-
-    ForStatement *asForStatement() override;
+    ForStatement *asForStatement() override { return this; }
   };
 
   class VariableAssignment : public Statement
@@ -326,9 +312,7 @@ namespace AST
     VariableAssignment(Identifier *variable, Expression *value)
         : variable(variable), value(value) {}
 
-    ~VariableAssignment();
-
-    VariableAssignment *asVariableAssignment() override;
+    VariableAssignment *asVariableAssignment() override { return this; }
   };
 
   class Block : public Statement
@@ -336,26 +320,24 @@ namespace AST
   public:
     std::vector<Statement *> statements;
     Block(std::vector<Statement *> statements) : statements(statements) {}
-    ~Block();
 
-    Block *asBlock();
+    Block *asBlock() override { return this; }
   };
 
   class Program : public Node
   {
   public:
     Identifier *name;
-    DeclarationList *declarations;
+    std::vector<Declaration *> declarations;
     Block *block;
 
     Program(
         Identifier *name,
-        DeclarationList *declarations,
+        std::vector<Declaration *> declarations,
         Block *block)
         : name(name),
           declarations(declarations),
           block(block) {}
-    ~Program();
   };
 }
 
