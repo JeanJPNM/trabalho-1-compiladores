@@ -59,9 +59,10 @@ int Driver::parse(const std::string &filename)
   return res;
 }
 
-void Driver::consume_all_tokens(const std::string &filename)
+void Driver::dump_tokens(const std::string &filename)
 {
   this->filename = filename;
+  this->trace_tokens = true;
   location.initialize(&this->filename);
 
   scan_begin();
@@ -124,7 +125,7 @@ yy::parser::symbol_type Driver::make_double_literal(const std::string &s)
 
 yy::parser::symbol_type Driver::make_integer_literal(const std::string &s)
 {
-  auto node = new AST::NumberLiteral(std::stoi(s));
+  auto node = new AST::NumberLiteral(std::stol(s));
   track_node(node);
   auto token = yy::parser::make_NUMBER(node, location);
 
