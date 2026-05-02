@@ -19,6 +19,9 @@ Driver::Driver()
   keywords["write"] = p::make_K_WRITE;
   keywords["while"] = p::make_K_WHILE;
   keywords["do"] = p::make_K_DO;
+  keywords["if"] = p::make_K_IF;
+  keywords["then"] = p::make_K_THEN;
+  keywords["else"] = p::make_K_ELSE;
   keywords["for"] = p::make_K_FOR;
   keywords["to"] = p::make_K_TO;
 

@@ -43,6 +43,9 @@
 %token K_WRITE "write"
 %token K_WHILE "while"
 %token K_DO "do"
+%token K_IF "if"
+%token K_THEN "then"
+%token K_ELSE "else"
 %token K_FOR "for"
 %token K_TO "to"
 %token SEMI ";"
@@ -64,6 +67,9 @@
 %token OP_GT ">"
 %token OP_GE ">="
 
+%precedence K_THEN
+%precedence K_ELSE
+
 %nterm program
 %nterm <std::vector<AST::Declaration *>> program_declarations
 %nterm <std::vector<AST::ConstantDeclaration *>> constant_declarations
@@ -81,6 +87,7 @@
 %nterm <AST::Block *> block
 %nterm <std::vector<AST::Statement *>> statements
 %nterm <AST::Statement *> statement
+%nterm <AST::Statement *> if_statement
 %nterm <AST::Condition *> condition
 %nterm <AST::ComparisonOperator> relational_operator
 %nterm <AST::Expression *> expression
@@ -170,7 +177,7 @@ procedure_declarations:
   };
 
 procedure_declaration:
-  K_PROCEDURE IDENTIFIER parameter_list ";" variable_declarations block {
+  K_PROCEDURE IDENTIFIER parameter_list ";" variable_declarations block ";" {
     $$ = new AST::ProcedureDeclaration($2, $3, $5, $6);
     driver.track_node($$);
   };
@@ -209,7 +216,7 @@ statements:
   {
     $$ = std::vector<AST::Statement *>();
   }
-  | statements statement {
+  | statements statement ";" {
     $1.push_back($2);
     $$ = $1;
   };
@@ -227,7 +234,10 @@ statement:
     $$ = new AST::WhileStatement($3, $6);
     driver.track_node($$);
   }
-  | IDENTIFIER {
+  | if_statement {
+    $$ = $1;
+  }
+  | IDENTIFIER ";" {
     $$ = new AST::IdentifierStatement($1);
     driver.track_node($$);
   }
@@ -244,6 +254,16 @@ statement:
   }
   | block {
     $$ = $1;
+  };
+
+if_statement:
+  K_IF condition K_THEN statement K_ELSE statement {
+    $$ = new AST::IfStatement($2, $4, $6);
+    driver.track_node($$);
+  }
+  | K_IF condition K_THEN statement {
+    $$ = new AST::IfStatement($2, $4, NULL);
+    driver.track_node($$);
   };
 
 condition:
