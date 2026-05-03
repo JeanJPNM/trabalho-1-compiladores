@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
 #include "cli.hpp"
 #include "eval.hpp"
 
@@ -40,6 +41,8 @@ namespace AST
     Node() {}
     virtual ~Node() {}
     virtual eval::Result evaluate(eval::Context &ctx) { return eval::Result(); }
+
+    virtual void dump(std::ostream &os, int indent) const = 0;
   };
 
   class Expression : public Node
@@ -60,6 +63,7 @@ namespace AST
     Identifier *asIdentifier() override { return this; }
 
     eval::Result evaluate(eval::Context &ctx) override;
+    void dump(std::ostream &os, int indent) const override;
   };
 
   class NumberLiteral : public Expression
@@ -72,6 +76,7 @@ namespace AST
     NumberLiteral *asNumberLiteral() override { return this; }
 
     eval::Result evaluate(eval::Context &ctx) override;
+    void dump(std::ostream &os, int indent) const override;
   };
 
   enum class UnaryOperator
@@ -92,6 +97,7 @@ namespace AST
     UnaryExpression *asUnaryExpression() override { return this; }
 
     eval::Result evaluate(eval::Context &ctx) override;
+    void dump(std::ostream &os, int indent) const override;
   };
 
   enum class BinaryOperator
@@ -114,6 +120,7 @@ namespace AST
     BinaryExpression *asBinaryExpression() override { return this; }
 
     eval::Result evaluate(eval::Context &ctx) override;
+    void dump(std::ostream &os, int indent) const override;
   };
 
   class Declaration : public Node
@@ -135,6 +142,7 @@ namespace AST
     ConstantDeclaration *asConstantDeclaration() override { return this; }
 
     eval::Result evaluate(eval::Context &ctx) override;
+    void dump(std::ostream &os, int indent) const override;
   };
 
   enum class VariableType
@@ -148,6 +156,7 @@ namespace AST
   public:
     VariableType type;
     TypeAnnotation(VariableType type) : type(type) {}
+    void dump(std::ostream &os, int indent) const override;
   };
 
   class VariableDeclaration : public Declaration
@@ -162,6 +171,7 @@ namespace AST
     VariableDeclaration *asVariableDeclaration() override { return this; }
 
     eval::Result evaluate(eval::Context &ctx) override;
+    void dump(std::ostream &os, int indent) const override;
   };
 
   // não precisa herdar de Declaration porque é usado
@@ -176,6 +186,7 @@ namespace AST
         : identifiers(identifiers), typeAnnotation(typeAnnotation) {}
 
     eval::Result evaluate(eval::Context &ctx) override;
+    void dump(std::ostream &os, int indent) const override;
   };
 
   class ProcedureDeclaration : public Declaration
@@ -199,6 +210,7 @@ namespace AST
     ProcedureDeclaration *asProcedureDeclaration() override { return this; }
 
     eval::Result evaluate(eval::Context &ctx) override;
+    void dump(std::ostream &os, int indent) const override;
   };
 
   class Statement : public Node
@@ -235,6 +247,7 @@ namespace AST
         : left(left), op(op), right(right) {}
 
     eval::Result evaluate(eval::Context &ctx) override;
+    void dump(std::ostream &os, int indent) const override;
   };
 
   class ReadStatement : public Statement
@@ -247,6 +260,7 @@ namespace AST
     ReadStatement *asReadStatement() override { return this; }
 
     eval::Result evaluate(eval::Context &ctx) override;
+    void dump(std::ostream &os, int indent) const override;
   };
 
   // isso poderia ser uma chamada de função, mas a spec especifica ela como uma
@@ -262,6 +276,7 @@ namespace AST
     WriteStatement *asWriteStatement() override { return this; }
 
     eval::Result evaluate(eval::Context &ctx) override;
+    void dump(std::ostream &os, int indent) const override;
   };
 
   class CallStatement : public Statement
@@ -276,6 +291,7 @@ namespace AST
     CallStatement *asCallStatement() override { return this; }
 
     eval::Result evaluate(eval::Context &ctx) override;
+    void dump(std::ostream &os, int indent) const override;
   };
 
   class IdentifierStatement : public Statement
@@ -285,6 +301,7 @@ namespace AST
     IdentifierStatement(Identifier *identifier) : identifier(identifier) {}
 
     IdentifierStatement *asIdentifierStatement() override { return this; }
+    void dump(std::ostream &os, int indent) const override;
   };
 
   class IfStatement : public Statement
@@ -301,6 +318,7 @@ namespace AST
     IfStatement *asIfStatement() override { return this; }
 
     eval::Result evaluate(eval::Context &ctx) override;
+    void dump(std::ostream &os, int indent) const override;
   };
 
   class WhileStatement : public Statement
@@ -315,6 +333,7 @@ namespace AST
     WhileStatement *asWhileStatement() override { return this; }
 
     eval::Result evaluate(eval::Context &ctx) override;
+    void dump(std::ostream &os, int indent) const override;
   };
 
   class ForStatement : public Statement
@@ -335,6 +354,7 @@ namespace AST
     ForStatement *asForStatement() override { return this; }
 
     eval::Result evaluate(eval::Context &ctx) override;
+    void dump(std::ostream &os, int indent) const override;
   };
 
   class VariableAssignment : public Statement
@@ -349,6 +369,7 @@ namespace AST
     VariableAssignment *asVariableAssignment() override { return this; }
 
     eval::Result evaluate(eval::Context &ctx) override;
+    void dump(std::ostream &os, int indent) const override;
   };
 
   class Block : public Statement
@@ -360,6 +381,7 @@ namespace AST
     Block *asBlock() override { return this; }
 
     eval::Result evaluate(eval::Context &ctx) override;
+    void dump(std::ostream &os, int indent) const override;
   };
 
   class Program : public Node
@@ -378,6 +400,7 @@ namespace AST
           block(block) {}
 
     eval::Result evaluate(eval::Context &ctx) override;
+    void dump(std::ostream &os, int indent) const override;
   };
 }
 

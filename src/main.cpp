@@ -68,7 +68,12 @@ void run(const std::string &filename)
 
 void dump_ast(const std::string &filename)
 {
-  std::cout << "not implemented" << std::endl;
+  Driver driver;
+  driver.parse(filename);
+  if (driver.program)
+  {
+    driver.program->dump(std::cout, 0);
+  }
 }
 
 void dump_tokens(const std::string &filename)
