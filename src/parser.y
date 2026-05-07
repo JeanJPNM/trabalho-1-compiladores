@@ -11,6 +11,7 @@
 %code requires {
   #include <string>
   #include <vector>
+  #include <utility>
   #include "nodes.hpp"
 
   class Driver;
@@ -102,7 +103,7 @@
 
 program:
   K_PROGRAM IDENTIFIER ";" program_declarations block "." {
-    driver.program = new AST::Program($2, $4, $5);
+    driver.program = new AST::Program($2, std::move($4), $5);
     driver.track_node(driver.program);
   };
 
@@ -113,7 +114,7 @@ program_declarations:
     result.insert(result.end(), $2.begin(), $2.end());
     result.insert(result.end(), $3.begin(), $3.end());
 
-    $$ = result;
+    $$ = std::move(result);
   };
 
 constant_declarations:
@@ -122,7 +123,7 @@ constant_declarations:
   }
   | constant_declarations constant_declaration {
     $1.push_back($2);
-    $$ = $1;
+    $$ = std::move($1);
   };
 
 constant_declaration:
@@ -137,12 +138,12 @@ variable_declarations:
   }
   | variable_declarations variable_declaration {
     $1.push_back($2);
-    $$ = $1;
+    $$ = std::move($1);
   };
 
 variable_declaration: 
   K_VAR identifiers type_annotation ";" {
-    $$ = new AST::VariableDeclaration($2, $3);
+    $$ = new AST::VariableDeclaration(std::move($2), $3);
     driver.track_node($$);
   };
 
@@ -153,7 +154,7 @@ identifiers:
   }
   | identifiers "," IDENTIFIER {
     $1.push_back($3);
-    $$ = $1;
+    $$ = std::move($1);
   };
 
 
@@ -173,18 +174,18 @@ procedure_declarations:
   }
   | procedure_declarations procedure_declaration {
     $1.push_back($2);
-    $$ = $1;
+    $$ = std::move($1);
   };
 
 procedure_declaration:
   K_PROCEDURE IDENTIFIER parameter_list ";" variable_declarations block ";" {
-    $$ = new AST::ProcedureDeclaration($2, $3, $5, $6);
+    $$ = new AST::ProcedureDeclaration($2, std::move($3), std::move($5), $6);
     driver.track_node($$);
   };
 
 parameter_list:
   "(" parameters ")" {
-    $$ = $2;
+    $$ = std::move($2);
   };
 
 parameters: 
@@ -194,7 +195,7 @@ parameters:
   }
   | parameters ";" parameter_group {
     $1.push_back($3);
-    $$ = $1;
+    $$ = std::move($1);
   }
   | {
     $$ = std::vector<AST::ParameterDeclaration *>();
@@ -202,13 +203,13 @@ parameters:
 
 parameter_group:
   identifiers type_annotation {
-    $$ = new AST::ParameterDeclaration($1, $2);
+    $$ = new AST::ParameterDeclaration(std::move($1), $2);
     driver.track_node($$);
   };
 
 block:
   K_BEGIN statements K_END {
-    $$ = new AST::Block($2);
+    $$ = new AST::Block(std::move($2));
     driver.track_node($$);
   };
 
@@ -218,16 +219,16 @@ statements:
   }
   | statements statement ";" {
     $1.push_back($2);
-    $$ = $1;
+    $$ = std::move($1);
   };
 
 statement:
   K_READ "(" identifiers ")" {
-    $$ = new AST::ReadStatement($3);
+    $$ = new AST::ReadStatement(std::move($3));
     driver.track_node($$);
   }
   | K_WRITE "(" identifiers ")" {
-    $$ = new AST::WriteStatement($3);
+    $$ = new AST::WriteStatement(std::move($3));
     driver.track_node($$);
   }
   | K_WHILE "(" condition ")" K_DO statement {
@@ -242,7 +243,7 @@ statement:
     driver.track_node($$);
   }
   | IDENTIFIER "(" identifiers ")" {
-    $$ = new AST::CallStatement($1, $3);
+    $$ = new AST::CallStatement($1, std::move($3));
     driver.track_node($$);
   }
   | K_FOR assignment K_TO expression K_DO statement {

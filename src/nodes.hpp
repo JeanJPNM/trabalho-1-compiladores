@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <utility>
 #include "cli.hpp"
 #include "eval.hpp"
 
@@ -165,8 +166,8 @@ namespace AST
     std::vector<Identifier *> identifiers;
     TypeAnnotation *typeAnnotation;
 
-    VariableDeclaration(std::vector<Identifier *> identifiers, TypeAnnotation *typeAnnotation)
-        : identifiers(identifiers), typeAnnotation(typeAnnotation) {}
+    VariableDeclaration(std::vector<Identifier *> &&identifiers, TypeAnnotation *typeAnnotation)
+        : identifiers(std::move(identifiers)), typeAnnotation(typeAnnotation) {}
 
     VariableDeclaration *asVariableDeclaration() override { return this; }
 
@@ -182,8 +183,8 @@ namespace AST
     std::vector<Identifier *> identifiers;
     TypeAnnotation *typeAnnotation;
 
-    ParameterDeclaration(std::vector<Identifier *> identifiers, TypeAnnotation *typeAnnotation)
-        : identifiers(identifiers), typeAnnotation(typeAnnotation) {}
+    ParameterDeclaration(std::vector<Identifier *> &&identifiers, TypeAnnotation *typeAnnotation)
+        : identifiers(std::move(identifiers)), typeAnnotation(typeAnnotation) {}
 
     eval::Result evaluate(eval::Context &ctx) override;
     void dump(std::ostream &os, int indent) const override;
@@ -199,12 +200,12 @@ namespace AST
 
     ProcedureDeclaration(
         Identifier *name,
-        std::vector<ParameterDeclaration *> parameters,
-        std::vector<VariableDeclaration *> localVariables,
+        std::vector<ParameterDeclaration *> &&parameters,
+        std::vector<VariableDeclaration *> &&localVariables,
         Block *body)
         : name(name),
-          parameters(parameters),
-          localVariables(localVariables),
+          parameters(std::move(parameters)),
+          localVariables(std::move(localVariables)),
           body(body) {}
 
     ProcedureDeclaration *asProcedureDeclaration() override { return this; }
@@ -255,7 +256,7 @@ namespace AST
   public:
     std::vector<Identifier *> variables;
 
-    ReadStatement(std::vector<Identifier *> variables) : variables(variables) {}
+    ReadStatement(std::vector<Identifier *> &&variables) : variables(std::move(variables)) {}
 
     ReadStatement *asReadStatement() override { return this; }
 
@@ -271,7 +272,7 @@ namespace AST
   public:
     std::vector<Identifier *> variables;
 
-    WriteStatement(std::vector<Identifier *> variables) : variables(variables) {}
+    WriteStatement(std::vector<Identifier *> &&variables) : variables(std::move(variables)) {}
 
     WriteStatement *asWriteStatement() override { return this; }
 
@@ -285,8 +286,8 @@ namespace AST
     Identifier *procedureName;
     std::vector<Identifier *> arguments;
 
-    CallStatement(Identifier *procedureName, std::vector<Identifier *> arguments)
-        : procedureName(procedureName), arguments(arguments) {}
+    CallStatement(Identifier *procedureName, std::vector<Identifier *> &&arguments)
+        : procedureName(procedureName), arguments(std::move(arguments)) {}
 
     CallStatement *asCallStatement() override { return this; }
 
@@ -376,7 +377,7 @@ namespace AST
   {
   public:
     std::vector<Statement *> statements;
-    Block(std::vector<Statement *> statements) : statements(statements) {}
+    Block(std::vector<Statement *> &&statements) : statements(std::move(statements)) {}
 
     Block *asBlock() override { return this; }
 
@@ -393,10 +394,10 @@ namespace AST
 
     Program(
         Identifier *name,
-        std::vector<Declaration *> declarations,
+        std::vector<Declaration *> &&declarations,
         Block *block)
         : name(name),
-          declarations(declarations),
+          declarations(std::move(declarations)),
           block(block) {}
 
     eval::Result evaluate(eval::Context &ctx) override;
