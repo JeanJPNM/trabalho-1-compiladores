@@ -36,7 +36,7 @@
 }
 
 [;(),:=*/+\-<>\.]|:=|==|<>|<=|>= {
-  return driver.make_token(yytext);
+  return driver.make_punctuation_token(yytext);
 }
 
 . {

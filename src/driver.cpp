@@ -133,7 +133,7 @@ yy::parser::symbol_type Driver::make_integer_literal(const std::string &s)
   return token;
 }
 
-yy::parser::symbol_type Driver::make_token(const std::string &s)
+yy::parser::symbol_type Driver::make_punctuation_token(const std::string &s)
 {
   auto it = tokens.find(s);
   yy::parser::symbol_type token =

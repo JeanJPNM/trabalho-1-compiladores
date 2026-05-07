@@ -35,7 +35,7 @@ public:
   yy::parser::symbol_type make_keyword_or_identifier(const std::string &s);
   yy::parser::symbol_type make_double_literal(const std::string &s);
   yy::parser::symbol_type make_integer_literal(const std::string &s);
-  yy::parser::symbol_type make_token(const std::string &s);
+  yy::parser::symbol_type make_punctuation_token(const std::string &s);
   yy::parser::symbol_type make_error(const std::string &s);
 
   int parse(const std::string &filename);

@@ -262,7 +262,7 @@ if_statement:
     driver.track_node($$);
   }
   | K_IF condition K_THEN statement {
-    $$ = new AST::IfStatement($2, $4, NULL);
+    $$ = new AST::IfStatement($2, $4, nullptr);
     driver.track_node($$);
   };
 
