@@ -189,23 +189,25 @@ namespace AST
   {
     ctx.define_procedure(name->name, [this](auto &ctx, const auto &args) -> eval::Result
                          {
-        if (args.size() != parameters.size())
-          throw std::runtime_error("Expected " + std::to_string(parameters.size()) +
+        size_t parameter_count = 0;
+        for(auto param : parameters)
+          parameter_count += param->identifiers.size();
+
+        if (args.size() != parameter_count)
+          throw std::runtime_error("Expected " + std::to_string(parameter_count) +
                                    " arguments but got " + std::to_string(args.size()));
 
         eval::Context child_ctx(&ctx);
 
-
-        for (size_t i = 0; i < parameters.size(); i++)
+        size_t arg_index = 0;
+        for (auto param : parameters)
         {
-          auto param = parameters[i];
-          auto arg = args[i];
-
-        
           // declara a variável no escopo do procedimento
           param->evaluate(child_ctx);
           for (auto identifier : param->identifiers)
           {
+            auto arg = args[arg_index];
+            arg_index++;
             child_ctx.assign_variable(identifier->name, arg);
           }
         }

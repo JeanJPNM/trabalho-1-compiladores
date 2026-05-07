@@ -145,6 +145,8 @@ namespace eval
     auto it = procedures.find(name);
     if (it == procedures.end())
     {
+      if (parent)
+        return parent->call_procedure(name, args);
       throw std::runtime_error("Undefined procedure: " + name);
     }
     return it->second(*this, args);
