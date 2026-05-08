@@ -4,7 +4,7 @@ namespace AST
 {
   eval::Result Identifier::evaluate(eval::Context &ctx)
   {
-    return ctx.get_variable(name);
+    return ctx.get_variable(name, range);
   }
 
   void Identifier::dump(std::ostream &os, int indent = 0) const
@@ -101,7 +101,7 @@ namespace AST
   eval::Result ConstantDeclaration::evaluate(eval::Context &ctx)
   {
     auto valueResult = value->evaluate(ctx);
-    ctx.define_constant(identifier->name, valueResult);
+    ctx.define_constant(identifier->name, valueResult, range);
     return eval::Result();
   }
 
@@ -132,7 +132,7 @@ namespace AST
                     : eval::Result(0.0);
     for (auto identifier : identifiers)
     {
-      ctx.define_variable(identifier->name, init);
+      ctx.define_variable(identifier->name, init, range);
     }
 
     return eval::Result();
@@ -163,7 +163,7 @@ namespace AST
 
     for (auto identifier : identifiers)
     {
-      ctx.define_variable(identifier->name, init);
+      ctx.define_variable(identifier->name, init, range);
     }
 
     return eval::Result();
@@ -187,7 +187,7 @@ namespace AST
 
   eval::Result ProcedureDeclaration::evaluate(eval::Context &ctx)
   {
-    ctx.define_procedure(name->name, [this](auto &ctx, const auto &args) -> eval::Result
+    ctx.define_procedure(name->name, range, [this](auto &ctx, const auto &args) -> eval::Result
                          {
         size_t parameter_count = 0;
         for(auto param : parameters)
@@ -208,7 +208,7 @@ namespace AST
           {
             auto arg = args[arg_index];
             arg_index++;
-            child_ctx.assign_variable(identifier->name, arg);
+            child_ctx.assign_variable(identifier->name, arg, range);
           }
         }
 
@@ -313,19 +313,19 @@ namespace AST
     for (const auto variable : variables)
     {
       auto &name = variable->name;
-      auto value = ctx.get_variable(name);
+      auto value = variable->evaluate(ctx);
 
       if (value.is_double())
       {
         double input;
         std::cin >> input;
-        ctx.assign_variable(name, eval::Result(input));
+        ctx.assign_variable(name, eval::Result(input), range);
       }
       else
       {
         long input;
         std::cin >> input;
-        ctx.assign_variable(name, eval::Result(input));
+        ctx.assign_variable(name, eval::Result(input), range);
       }
     }
 
@@ -350,7 +350,7 @@ namespace AST
     for (size_t i = 0; i < variables.size(); i++)
     {
       auto variable = variables[i];
-      auto value = ctx.get_variable(variable->name);
+      auto value = variable->evaluate(ctx);
 
       if (i != 0)
         std::cout << ' ';
@@ -389,7 +389,7 @@ namespace AST
       argValues.push_back(arg->evaluate(ctx));
     }
 
-    return ctx.call_procedure(procedureName->name, argValues);
+    return ctx.call_procedure(procedureName->name, argValues, range);
   }
 
   void CallStatement::dump(std::ostream &os, int indent) const
@@ -475,8 +475,9 @@ namespace AST
   {
     initialization->evaluate(ctx);
     const std::string &varName = initialization->variable->name;
+    Range varRange = initialization->variable->range;
 
-    eval::Result initialValue = ctx.get_variable(varName);
+    eval::Result initialValue = ctx.get_variable(varName, varRange);
     if (!initialValue.is_long())
       throw std::runtime_error("For loop variable must be of type integer");
 
@@ -487,8 +488,8 @@ namespace AST
     while (currentValue != targetValue)
     {
       body->evaluate(ctx);
-      ctx.assign_variable(varName, currentValue + step);
-      currentValue = ctx.get_variable(varName);
+      ctx.assign_variable(varName, currentValue + step, varRange);
+      currentValue = ctx.get_variable(varName, varRange);
     }
 
     return eval::Result();
@@ -511,7 +512,7 @@ namespace AST
 
   eval::Result VariableAssignment::evaluate(eval::Context &ctx)
   {
-    ctx.assign_variable(variable->name, value->evaluate(ctx));
+    ctx.assign_variable(variable->name, value->evaluate(ctx), range);
 
     return eval::Result();
   }

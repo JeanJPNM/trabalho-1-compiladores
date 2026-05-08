@@ -19,6 +19,10 @@
 
 %code {
   #include "driver.hpp"
+
+  namespace yy {
+    Range range_from(const yy::location &start, const yy::location &end);
+  };
 }
 
 %param { Driver& driver }
@@ -103,7 +107,8 @@
 
 program:
   K_PROGRAM IDENTIFIER ";" program_declarations block "." {
-    driver.program = new AST::Program($2, std::move($4), $5);
+    Range range = range_from(@1, @6);
+    driver.program = new AST::Program(range, $2, std::move($4), $5);
     driver.track_node(driver.program);
   };
 
@@ -128,7 +133,8 @@ constant_declarations:
 
 constant_declaration:
   K_CONST IDENTIFIER "=" NUMBER ";" {
-    $$ = new AST::ConstantDeclaration($2, $4);
+    Range range = range_from(@1, @5);
+    $$ = new AST::ConstantDeclaration(range, $2, $4);
     driver.track_node($$);
   };
 
@@ -143,7 +149,8 @@ variable_declarations:
 
 variable_declaration: 
   K_VAR identifiers type_annotation ";" {
-    $$ = new AST::VariableDeclaration(std::move($2), $3);
+    Range range = range_from(@1, @4);
+    $$ = new AST::VariableDeclaration(range, std::move($2), $3);
     driver.track_node($$);
   };
 
@@ -160,7 +167,8 @@ identifiers:
 
 type_annotation:
   ":" variable_type {
-    $$ = new AST::TypeAnnotation($2);
+    Range range = range_from(@1, @2);
+    $$ = new AST::TypeAnnotation(range, $2);
     driver.track_node($$);
   }
 
@@ -179,7 +187,8 @@ procedure_declarations:
 
 procedure_declaration:
   K_PROCEDURE IDENTIFIER parameter_list ";" variable_declarations block ";" {
-    $$ = new AST::ProcedureDeclaration($2, std::move($3), std::move($5), $6);
+    Range range = range_from(@1, @7);
+    $$ = new AST::ProcedureDeclaration(range, $2, std::move($3), std::move($5), $6);
     driver.track_node($$);
   };
 
@@ -203,13 +212,15 @@ parameters:
 
 parameter_group:
   identifiers type_annotation {
-    $$ = new AST::ParameterDeclaration(std::move($1), $2);
+    Range range = range_from(@1, @2);
+    $$ = new AST::ParameterDeclaration(range, std::move($1), $2);
     driver.track_node($$);
   };
 
 block:
   K_BEGIN statements K_END {
-    $$ = new AST::Block(std::move($2));
+    Range range = range_from(@1, @3);
+    $$ = new AST::Block(range, std::move($2));
     driver.track_node($$);
   };
 
@@ -224,30 +235,36 @@ statements:
 
 statement:
   K_READ "(" identifiers ")" {
-    $$ = new AST::ReadStatement(std::move($3));
+    Range range = range_from(@1, @4);
+    $$ = new AST::ReadStatement(range, std::move($3));
     driver.track_node($$);
   }
   | K_WRITE "(" identifiers ")" {
-    $$ = new AST::WriteStatement(std::move($3));
+    Range range = range_from(@1, @4);
+    $$ = new AST::WriteStatement(range, std::move($3));
     driver.track_node($$);
   }
   | K_WHILE "(" condition ")" K_DO statement {
-    $$ = new AST::WhileStatement($3, $6);
+    Range range = range_from(@1, @6);
+    $$ = new AST::WhileStatement(range, $3, $6);
     driver.track_node($$);
   }
   | if_statement {
     $$ = $1;
   }
   | IDENTIFIER ";" {
-    $$ = new AST::IdentifierStatement($1);
+    Range range = range_from(@1, @2);
+    $$ = new AST::IdentifierStatement(range, $1);
     driver.track_node($$);
   }
   | IDENTIFIER "(" identifiers ")" {
-    $$ = new AST::CallStatement($1, std::move($3));
+    Range range = range_from(@1, @4);
+    $$ = new AST::CallStatement(range, $1, std::move($3));
     driver.track_node($$);
   }
   | K_FOR assignment K_TO expression K_DO statement {
-    $$ = new AST::ForStatement($2, $4, $6);
+    Range range = range_from(@1, @6);
+    $$ = new AST::ForStatement(range, $2, $4, $6);
     driver.track_node($$);
   }
   | assignment {
@@ -259,17 +276,20 @@ statement:
 
 if_statement:
   K_IF condition K_THEN statement K_ELSE statement {
-    $$ = new AST::IfStatement($2, $4, $6);
+    Range range = range_from(@1, @6);
+    $$ = new AST::IfStatement(range, $2, $4, $6);
     driver.track_node($$);
   }
   | K_IF condition K_THEN statement {
-    $$ = new AST::IfStatement($2, $4, nullptr);
+    Range range = range_from(@1, @4);
+    $$ = new AST::IfStatement(range, $2, $4, nullptr);
     driver.track_node($$);
   };
 
 condition:
   expression relational_operator expression {
-    $$ = new AST::Condition($1, $2, $3);
+    Range range = range_from(@1, @3);
+    $$ = new AST::Condition(range, $1, $2, $3);
     driver.track_node($$);
   };
 
@@ -286,7 +306,8 @@ expression:
     $$ = $1;
   }
   | expression additive_operator term {
-    $$ = new AST::BinaryExpression($1, $2, $3);
+    Range range = range_from(@1, @3);
+    $$ = new AST::BinaryExpression(range, $1, $2, $3);
     driver.track_node($$);
   };
 
@@ -299,11 +320,13 @@ term:
     $$ = $1;
   }
   | unary_operator factor {
-    $$ = new AST::UnaryExpression($1, $2);
+    Range range = range_from(@1, @2);
+    $$ = new AST::UnaryExpression(range, $1, $2);
     driver.track_node($$);
   }
   | term multiplicative_operator factor {
-    $$ = new AST::BinaryExpression($1, $2, $3);
+    Range range = range_from(@1, @3);
+    $$ = new AST::BinaryExpression(range, $1, $2, $3);
     driver.track_node($$);
   };
 
@@ -322,7 +345,8 @@ factor:
 
 assignment:
   IDENTIFIER OP_ASSIGN expression {
-    $$ = new AST::VariableAssignment($1, $3);
+    Range range = range_from(@1, @3);
+    $$ = new AST::VariableAssignment(range, $1, $3);
     driver.track_node($$);
   };
 %%
@@ -330,4 +354,12 @@ assignment:
 void yy::parser::error (const location_type& l, const std::string& m)
 {
   std::cerr << l << ": " << m << '\n';
+}
+
+Range yy::range_from(const yy::location &first, const yy::location &last)
+{
+  return Range(
+    Position(first.begin.line, first.begin.column),
+    Position(last.end.line, last.end.column)
+  );
 }

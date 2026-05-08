@@ -7,6 +7,7 @@
 #include <variant>
 #include <functional>
 #include <stdexcept>
+#include "range.hpp"
 
 namespace eval
 {
@@ -48,6 +49,22 @@ namespace eval
   class Context;
   typedef std::function<Result(Context &, std::vector<Result>)> ProcedureRunner;
 
+  class InterpreterError : public std::exception
+  {
+    std::string what_message;
+    std::string filename;
+
+  public:
+    Range range;
+    std::string message;
+
+    InterpreterError(const std::string &message, Range range);
+
+    void set_filename(const std::string &filename);
+
+    const char *what() const noexcept override;
+  };
+
   class Context
   {
     Context *parent = nullptr;
@@ -56,14 +73,15 @@ namespace eval
     std::map<std::string, ProcedureRunner> procedures;
 
   public:
-    Context(Context *parent = nullptr) : parent(parent) {}
+    Context(Context *parent = nullptr)
+        : parent(parent) {}
 
-    void define_constant(const std::string &name, Result value);
-    void define_variable(const std::string &name, Result value);
-    void assign_variable(const std::string &name, Result value);
-    Result get_variable(const std::string &name) const;
-    void define_procedure(const std::string &name, ProcedureRunner proc);
-    Result call_procedure(const std::string &name, const std::vector<Result> &args);
+    void define_constant(const std::string &name, Result value, const Range &range);
+    void define_variable(const std::string &name, Result value, const Range &range);
+    void assign_variable(const std::string &name, Result value, const Range &range);
+    Result get_variable(const std::string &name, const Range &range) const;
+    void define_procedure(const std::string &name, const Range &range, ProcedureRunner proc);
+    Result call_procedure(const std::string &name, const std::vector<Result> &args, const Range &range);
   };
 
 };

@@ -45,6 +45,13 @@ Driver::Driver()
   tokens[">="] = p::make_OP_GE;
 }
 
+Range Driver::range()
+{
+  return Range(
+      Position(location.begin.line, location.begin.column),
+      Position(location.end.line, location.end.column));
+}
+
 int Driver::parse(const std::string &filename)
 {
   this->filename = filename;
@@ -105,7 +112,7 @@ yy::parser::symbol_type Driver::make_keyword_or_identifier(const std::string &s)
     return token;
   }
 
-  auto node = new AST::Identifier(s);
+  auto node = new AST::Identifier(range(), s);
   track_node(node);
 
   auto token = yy::parser::make_IDENTIFIER(node, location);
@@ -115,7 +122,7 @@ yy::parser::symbol_type Driver::make_keyword_or_identifier(const std::string &s)
 
 yy::parser::symbol_type Driver::make_double_literal(const std::string &s)
 {
-  auto node = new AST::NumberLiteral(std::stod(s));
+  auto node = new AST::NumberLiteral(range(), std::stod(s));
   track_node(node);
   auto token = yy::parser::make_NUMBER(node, location);
 
@@ -125,7 +132,7 @@ yy::parser::symbol_type Driver::make_double_literal(const std::string &s)
 
 yy::parser::symbol_type Driver::make_integer_literal(const std::string &s)
 {
-  auto node = new AST::NumberLiteral(std::stol(s));
+  auto node = new AST::NumberLiteral(range(), std::stol(s));
   track_node(node);
   auto token = yy::parser::make_NUMBER(node, location);
 

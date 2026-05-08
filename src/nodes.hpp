@@ -7,6 +7,7 @@
 #include <utility>
 #include "cli.hpp"
 #include "eval.hpp"
+#include "range.hpp"
 
 namespace AST
 {
@@ -39,7 +40,8 @@ namespace AST
   class Node
   {
   public:
-    Node() {}
+    Range range;
+    Node(Range range) : range(range) {}
     virtual ~Node() {}
     virtual eval::Result evaluate(eval::Context &ctx) { return eval::Result(); }
 
@@ -49,6 +51,7 @@ namespace AST
   class Expression : public Node
   {
   public:
+    Expression(Range range) : Node(range) {}
     virtual Identifier *asIdentifier() { return nullptr; }
     virtual NumberLiteral *asNumberLiteral() { return nullptr; }
     virtual UnaryExpression *asUnaryExpression() { return nullptr; }
@@ -59,7 +62,7 @@ namespace AST
   {
   public:
     std::string name;
-    Identifier(std::string name) : name(name) {}
+    Identifier(Range range, std::string name) : name(name), Expression(range) {}
 
     Identifier *asIdentifier() override { return this; }
 
@@ -71,8 +74,8 @@ namespace AST
   {
   public:
     std::variant<double, long> value;
-    NumberLiteral(double value) : value(value) {}
-    NumberLiteral(long value) : value(value) {}
+    NumberLiteral(Range range, double value) : value(value), Expression(range) {}
+    NumberLiteral(Range range, long value) : value(value), Expression(range) {}
 
     NumberLiteral *asNumberLiteral() override { return this; }
 
@@ -92,8 +95,8 @@ namespace AST
     UnaryOperator op;
     Expression *operand;
 
-    UnaryExpression(UnaryOperator op, Expression *operand)
-        : op(op), operand(operand) {}
+    UnaryExpression(Range range, UnaryOperator op, Expression *operand)
+        : op(op), operand(operand), Expression(range) {}
 
     UnaryExpression *asUnaryExpression() override { return this; }
 
@@ -115,8 +118,8 @@ namespace AST
     BinaryOperator op;
     Expression *left, *right;
 
-    BinaryExpression(Expression *left, BinaryOperator op, Expression *right)
-        : left(left), op(op), right(right) {}
+    BinaryExpression(Range range, Expression *left, BinaryOperator op, Expression *right)
+        : left(left), op(op), right(right), Expression(range) {}
 
     BinaryExpression *asBinaryExpression() override { return this; }
 
@@ -127,6 +130,7 @@ namespace AST
   class Declaration : public Node
   {
   public:
+    Declaration(Range range) : Node(range) {}
     virtual ConstantDeclaration *asConstantDeclaration() { return nullptr; }
     virtual VariableDeclaration *asVariableDeclaration() { return nullptr; }
     virtual ProcedureDeclaration *asProcedureDeclaration() { return nullptr; }
@@ -137,8 +141,8 @@ namespace AST
   public:
     Identifier *identifier;
     NumberLiteral *value;
-    ConstantDeclaration(Identifier *identifier, NumberLiteral *value)
-        : identifier(identifier), value(value) {}
+    ConstantDeclaration(Range range, Identifier *identifier, NumberLiteral *value)
+        : identifier(identifier), value(value), Declaration(range) {}
 
     ConstantDeclaration *asConstantDeclaration() override { return this; }
 
@@ -156,7 +160,7 @@ namespace AST
   {
   public:
     VariableType type;
-    TypeAnnotation(VariableType type) : type(type) {}
+    TypeAnnotation(Range range, VariableType type) : type(type), Node(range) {}
     void dump(std::ostream &os, int indent) const override;
   };
 
@@ -166,8 +170,13 @@ namespace AST
     std::vector<Identifier *> identifiers;
     TypeAnnotation *typeAnnotation;
 
-    VariableDeclaration(std::vector<Identifier *> &&identifiers, TypeAnnotation *typeAnnotation)
-        : identifiers(std::move(identifiers)), typeAnnotation(typeAnnotation) {}
+    VariableDeclaration(
+        Range range,
+        std::vector<Identifier *> &&identifiers,
+        TypeAnnotation *typeAnnotation)
+        : identifiers(std::move(identifiers)),
+          typeAnnotation(typeAnnotation),
+          Declaration(range) {}
 
     VariableDeclaration *asVariableDeclaration() override { return this; }
 
@@ -183,8 +192,13 @@ namespace AST
     std::vector<Identifier *> identifiers;
     TypeAnnotation *typeAnnotation;
 
-    ParameterDeclaration(std::vector<Identifier *> &&identifiers, TypeAnnotation *typeAnnotation)
-        : identifiers(std::move(identifiers)), typeAnnotation(typeAnnotation) {}
+    ParameterDeclaration(
+        Range range,
+        std::vector<Identifier *> &&identifiers,
+        TypeAnnotation *typeAnnotation)
+        : identifiers(std::move(identifiers)),
+          typeAnnotation(typeAnnotation),
+          Node(range) {}
 
     eval::Result evaluate(eval::Context &ctx) override;
     void dump(std::ostream &os, int indent) const override;
@@ -199,6 +213,7 @@ namespace AST
     Block *body;
 
     ProcedureDeclaration(
+        Range range,
         Identifier *name,
         std::vector<ParameterDeclaration *> &&parameters,
         std::vector<VariableDeclaration *> &&localVariables,
@@ -206,7 +221,8 @@ namespace AST
         : name(name),
           parameters(std::move(parameters)),
           localVariables(std::move(localVariables)),
-          body(body) {}
+          body(body),
+          Declaration(range) {}
 
     ProcedureDeclaration *asProcedureDeclaration() override { return this; }
 
@@ -217,6 +233,8 @@ namespace AST
   class Statement : public Node
   {
   public:
+    Statement(Range range) : Node(range) {}
+
     virtual ReadStatement *asReadStatement() { return nullptr; }
     virtual WriteStatement *asWriteStatement() { return nullptr; }
     virtual CallStatement *asCallStatement() { return nullptr; }
@@ -244,8 +262,8 @@ namespace AST
     Expression *left, *right;
     ComparisonOperator op;
 
-    Condition(Expression *left, ComparisonOperator op, Expression *right)
-        : left(left), op(op), right(right) {}
+    Condition(Range range, Expression *left, ComparisonOperator op, Expression *right)
+        : left(left), op(op), right(right), Node(range) {}
 
     eval::Result evaluate(eval::Context &ctx) override;
     void dump(std::ostream &os, int indent) const override;
@@ -256,7 +274,8 @@ namespace AST
   public:
     std::vector<Identifier *> variables;
 
-    ReadStatement(std::vector<Identifier *> &&variables) : variables(std::move(variables)) {}
+    ReadStatement(Range range, std::vector<Identifier *> &&variables)
+        : variables(std::move(variables)), Statement(range) {}
 
     ReadStatement *asReadStatement() override { return this; }
 
@@ -272,7 +291,8 @@ namespace AST
   public:
     std::vector<Identifier *> variables;
 
-    WriteStatement(std::vector<Identifier *> &&variables) : variables(std::move(variables)) {}
+    WriteStatement(Range range, std::vector<Identifier *> &&variables)
+        : variables(std::move(variables)), Statement(range) {}
 
     WriteStatement *asWriteStatement() override { return this; }
 
@@ -286,8 +306,8 @@ namespace AST
     Identifier *procedureName;
     std::vector<Identifier *> arguments;
 
-    CallStatement(Identifier *procedureName, std::vector<Identifier *> &&arguments)
-        : procedureName(procedureName), arguments(std::move(arguments)) {}
+    CallStatement(Range range, Identifier *procedureName, std::vector<Identifier *> &&arguments)
+        : procedureName(procedureName), arguments(std::move(arguments)), Statement(range) {}
 
     CallStatement *asCallStatement() override { return this; }
 
@@ -299,7 +319,7 @@ namespace AST
   {
   public:
     Identifier *identifier;
-    IdentifierStatement(Identifier *identifier) : identifier(identifier) {}
+    IdentifierStatement(Range range, Identifier *identifier) : identifier(identifier), Statement(range) {}
 
     IdentifierStatement *asIdentifierStatement() override { return this; }
     void dump(std::ostream &os, int indent) const override;
@@ -313,8 +333,8 @@ namespace AST
     /// Pode ser nulo
     Statement *alternate;
 
-    IfStatement(Condition *condition, Statement *consequent, Statement *alternate)
-        : condition(condition), consequent(consequent), alternate(alternate) {}
+    IfStatement(Range range, Condition *condition, Statement *consequent, Statement *alternate)
+        : condition(condition), consequent(consequent), alternate(alternate), Statement(range) {}
 
     IfStatement *asIfStatement() override { return this; }
 
@@ -328,8 +348,8 @@ namespace AST
     Condition *condition;
     Statement *body;
 
-    WhileStatement(Condition *condition, Statement *body)
-        : condition(condition), body(body) {}
+    WhileStatement(Range range, Condition *condition, Statement *body)
+        : condition(condition), body(body), Statement(range) {}
 
     WhileStatement *asWhileStatement() override { return this; }
 
@@ -344,13 +364,14 @@ namespace AST
     Expression *target;
     Statement *body;
 
-    ForStatement(
-        VariableAssignment *initialization,
-        Expression *target,
-        Statement *body)
+    ForStatement(Range range,
+                 VariableAssignment *initialization,
+                 Expression *target,
+                 Statement *body)
         : initialization(initialization),
           target(target),
-          body(body) {}
+          body(body),
+          Statement(range) {}
 
     ForStatement *asForStatement() override { return this; }
 
@@ -364,8 +385,8 @@ namespace AST
     Identifier *variable;
     Expression *value;
 
-    VariableAssignment(Identifier *variable, Expression *value)
-        : variable(variable), value(value) {}
+    VariableAssignment(Range range, Identifier *variable, Expression *value)
+        : variable(variable), value(value), Statement(range) {}
 
     VariableAssignment *asVariableAssignment() override { return this; }
 
@@ -377,7 +398,8 @@ namespace AST
   {
   public:
     std::vector<Statement *> statements;
-    Block(std::vector<Statement *> &&statements) : statements(std::move(statements)) {}
+    Block(Range range, std::vector<Statement *> &&statements)
+        : statements(std::move(statements)), Statement(range) {}
 
     Block *asBlock() override { return this; }
 
@@ -393,12 +415,14 @@ namespace AST
     Block *block;
 
     Program(
+        Range range,
         Identifier *name,
         std::vector<Declaration *> &&declarations,
         Block *block)
         : name(name),
           declarations(std::move(declarations)),
-          block(block) {}
+          block(block),
+          Node(range) {}
 
     eval::Result evaluate(eval::Context &ctx) override;
     void dump(std::ostream &os, int indent) const override;

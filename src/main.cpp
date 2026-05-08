@@ -55,13 +55,13 @@ void run(const std::string &filename)
   {
     try
     {
-
       eval::Context root_ctx;
       driver.program->evaluate(root_ctx);
     }
-    catch (const std::exception &e)
+    catch (eval::InterpreterError &e)
     {
-      std::cerr << "Error: " << e.what() << std::endl;
+      e.set_filename(driver.filename);
+      std::cerr << e.what() << std::endl;
     }
   }
 }

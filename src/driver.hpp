@@ -15,6 +15,7 @@ class Driver
 {
   void log_token(const yy::parser::symbol_type &token, const std::string &source);
   std::vector<std::unique_ptr<AST::Node>> nodes;
+  Range range();
 
 public:
   std::map<
