@@ -66,6 +66,8 @@ namespace AST
     case BinaryOperator::MULTIPLY:
       return l * r;
     case BinaryOperator::DIVIDE:
+      if (r.as_double() == 0)
+        throw eval::InterpreterError("Division by zero", range);
       return l / r;
     }
 
