@@ -93,6 +93,7 @@
 %nterm <std::vector<AST::Statement *>> statements
 %nterm <AST::Statement *> statement
 %nterm <AST::Statement *> if_statement
+%nterm <std::vector<AST::Identifier *>> argument_list
 %nterm <AST::Condition *> condition
 %nterm <AST::ComparisonOperator> relational_operator
 %nterm <AST::Expression *> expression
@@ -257,7 +258,7 @@ statement:
     $$ = new AST::IdentifierStatement(range, $1);
     driver.track_node($$);
   }
-  | IDENTIFIER "(" identifiers ")" {
+  | IDENTIFIER "(" argument_list ")" {
     Range range = range_from(@1, @4);
     $$ = new AST::CallStatement(range, $1, std::move($3));
     driver.track_node($$);
@@ -284,6 +285,16 @@ if_statement:
     Range range = range_from(@1, @4);
     $$ = new AST::IfStatement(range, $2, $4, nullptr);
     driver.track_node($$);
+  };
+
+argument_list:
+  IDENTIFIER {
+    $$ = std::vector<AST::Identifier *>();
+    $$.push_back($1);
+  }
+  | argument_list ";" IDENTIFIER {
+    $1.push_back($3);
+    $$ = std::move($1);
   };
 
 condition:
