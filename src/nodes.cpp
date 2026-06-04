@@ -484,14 +484,16 @@ namespace AST
       throw std::runtime_error("For loop variable must be of type integer");
 
     eval::Result targetValue = target->evaluate(ctx);
-    eval::Result step((initialValue <= targetValue).is_truthy() ? 1L : -1L);
+    bool isForward = (initialValue <= targetValue).is_truthy();
+    eval::Result step(isForward ? 1L : -1L);
     eval::Result currentValue = initialValue;
 
-    while (currentValue != targetValue)
+    while (isForward ? currentValue.as_long() < targetValue.as_long()
+                     : currentValue.as_long() > targetValue.as_long())
     {
       body->evaluate(ctx);
-      ctx.assign_variable(varName, currentValue + step, varRange);
-      currentValue = ctx.get_variable(varName, varRange);
+      currentValue = ctx.get_variable(varName, varRange) + step;
+      ctx.assign_variable(varName, currentValue, varRange);
     }
 
     return eval::Result();
