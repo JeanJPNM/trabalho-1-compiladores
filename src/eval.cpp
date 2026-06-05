@@ -114,6 +114,10 @@ namespace eval
 
   void Context::define_constant(const std::string &name, Result value, const Range &range)
   {
+    if (constants.find(name) != constants.end())
+      throw eval::InterpreterError("Constant already defined: " + name, range);
+    if (variables.find(name) != variables.end())
+      throw eval::InterpreterError("Variable already defined: " + name, range);
     constants.insert(name);
     variables[name] = value;
   }
@@ -121,7 +125,9 @@ namespace eval
   void Context::define_variable(const std::string &name, Result value, const Range &range)
   {
     if (constants.find(name) != constants.end())
-      throw eval::InterpreterError("Cannot assign to constant: " + name, range);
+      throw eval::InterpreterError("Constant already defined: " + name, range);
+    if (variables.find(name) != variables.end())
+      throw eval::InterpreterError("Variable already defined: " + name, range);
     variables[name] = value;
   }
 

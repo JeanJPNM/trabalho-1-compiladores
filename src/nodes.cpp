@@ -134,7 +134,7 @@ namespace AST
                     : eval::Result(0.0);
     for (auto identifier : identifiers)
     {
-      ctx.define_variable(identifier->name, init, range);
+      ctx.define_variable(identifier->name, init, identifier->range);
     }
 
     return eval::Result();
@@ -165,7 +165,7 @@ namespace AST
 
     for (auto identifier : identifiers)
     {
-      ctx.define_variable(identifier->name, init, range);
+      ctx.define_variable(identifier->name, init, identifier->range);
     }
 
     return eval::Result();
