@@ -184,6 +184,6 @@ namespace eval
         return parent->call_procedure(name, args, range);
       throw eval::InterpreterError("Undefined procedure: " + name, range);
     }
-    return it->second(*this, args);
+    return it->second(*this, args, range);
   }
 }

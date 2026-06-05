@@ -189,15 +189,16 @@ namespace AST
 
   eval::Result ProcedureDeclaration::evaluate(eval::Context &ctx)
   {
-    ctx.define_procedure(name->name, range, [this](auto &ctx, const auto &args) -> eval::Result
+    ctx.define_procedure(name->name, range, [this](auto &ctx, const auto &args, const auto &callRange) -> eval::Result
                          {
         size_t parameter_count = 0;
         for(auto param : parameters)
           parameter_count += param->identifiers.size();
 
         if (args.size() != parameter_count)
-          throw std::runtime_error("Expected " + std::to_string(parameter_count) +
-                                   " arguments but got " + std::to_string(args.size()));
+          throw eval::InterpreterError("Expected " + std::to_string(parameter_count) +
+                                        " arguments but got " + std::to_string(args.size()),     
+                                        callRange);
 
         eval::Context child_ctx(&ctx);
 
@@ -210,7 +211,7 @@ namespace AST
           {
             auto arg = args[arg_index];
             arg_index++;
-            child_ctx.assign_variable(identifier->name, arg, range);
+            child_ctx.assign_variable(identifier->name, arg, callRange);
           }
         }
 

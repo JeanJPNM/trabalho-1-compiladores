@@ -47,7 +47,7 @@ namespace eval
   };
 
   class Context;
-  typedef std::function<Result(Context &, std::vector<Result>)> ProcedureRunner;
+  typedef std::function<Result(Context &, std::vector<Result>, const Range &)> ProcedureRunner;
 
   class InterpreterError : public std::exception
   {
