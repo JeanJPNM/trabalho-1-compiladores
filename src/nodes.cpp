@@ -480,16 +480,13 @@ namespace AST
     Range varRange = initialization->variable->range;
 
     eval::Result initialValue = ctx.get_variable(varName, varRange);
-    if (!initialValue.is_long())
-      throw std::runtime_error("For loop variable must be of type integer");
-
     eval::Result targetValue = target->evaluate(ctx);
     bool isForward = (initialValue <= targetValue).is_truthy();
     eval::Result step(isForward ? 1L : -1L);
     eval::Result currentValue = initialValue;
 
-    while (isForward ? currentValue.as_long() < targetValue.as_long()
-                     : currentValue.as_long() > targetValue.as_long())
+    while (isForward ? currentValue.as_double() < targetValue.as_double()
+                     : currentValue.as_double() > targetValue.as_double())
     {
       body->evaluate(ctx);
       currentValue = ctx.get_variable(varName, varRange) + step;
