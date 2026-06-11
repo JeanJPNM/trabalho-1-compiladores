@@ -36,20 +36,20 @@ namespace AST
 
   eval::Result UnaryExpression::evaluate(eval::Context &ctx)
   {
-    auto operandValue = operand->evaluate(ctx);
+    auto operand_value = operand->evaluate(ctx);
     if (op == UnaryOperator::PLUS)
-      return operandValue;
+      return operand_value;
 
-    return eval::Result(0L) - operandValue;
+    return eval::Result(0L) - operand_value;
   }
 
   void UnaryExpression::dump(std::ostream &os, int indent) const
   {
     os << "UnaryExpression(";
-    int nestedIndent = indent + 2;
-    os << Pad(nestedIndent) << "operator: " << (op == UnaryOperator::PLUS ? "+" : "-") << std::endl;
-    os << Pad(nestedIndent) << "operand: ";
-    operand->dump(os, nestedIndent);
+    int nested_indent = indent + 2;
+    os << Pad(nested_indent) << "operator: " << (op == UnaryOperator::PLUS ? "+" : "-") << std::endl;
+    os << Pad(nested_indent) << "operand: ";
+    operand->dump(os, nested_indent);
     os << Pad(indent) << ")" << std::endl;
   }
 
@@ -76,8 +76,8 @@ namespace AST
   void BinaryExpression::dump(std::ostream &os, int indent) const
   {
     os << "BinaryExpression(" << std::endl;
-    int nestedIndent = indent + 2;
-    os << Pad(nestedIndent) << "operator: ";
+    int nested_indent = indent + 2;
+    os << Pad(nested_indent) << "operator: ";
     switch (op)
     {
     case BinaryOperator::ADD:
@@ -93,17 +93,17 @@ namespace AST
       os << "/" << std::endl;
       break;
     }
-    os << Pad(nestedIndent) << "left: ";
-    left->dump(os, nestedIndent);
-    os << Pad(nestedIndent) << "right: ";
-    right->dump(os, nestedIndent);
+    os << Pad(nested_indent) << "left: ";
+    left->dump(os, nested_indent);
+    os << Pad(nested_indent) << "right: ";
+    right->dump(os, nested_indent);
     os << Pad(indent) << ")" << std::endl;
   }
 
   eval::Result ConstantDeclaration::evaluate(eval::Context &ctx)
   {
-    auto valueResult = value->evaluate(ctx);
-    ctx.define_constant(identifier->name, valueResult, range);
+    auto value_result = value->evaluate(ctx);
+    ctx.define_constant(identifier->name, value_result, range);
     return eval::Result();
   }
 
@@ -129,7 +129,7 @@ namespace AST
 
   eval::Result VariableDeclaration::evaluate(eval::Context &ctx)
   {
-    auto init = typeAnnotation->type == VariableType::INT
+    auto init = type_annotation->type == VariableType::INT
                     ? eval::Result(0L)
                     : eval::Result(0.0);
     for (auto identifier : identifiers)
@@ -144,7 +144,7 @@ namespace AST
   {
     os << "VariableDeclaration(" << std::endl;
     os << Pad(indent + 2) << "type: ";
-    typeAnnotation->dump(os, indent + 2);
+    type_annotation->dump(os, indent + 2);
 
     os << Pad(indent + 2) << "identifiers: [" << std::endl;
     for (auto identifier : identifiers)
@@ -159,7 +159,7 @@ namespace AST
 
   eval::Result ParameterDeclaration::evaluate(eval::Context &ctx)
   {
-    auto init = typeAnnotation->type == VariableType::INT
+    auto init = type_annotation->type == VariableType::INT
                     ? eval::Result(0L)
                     : eval::Result(0.0);
 
@@ -174,7 +174,7 @@ namespace AST
   {
     os << "ParameterDeclaration(" << std::endl;
     os << Pad(indent + 2) << "type: ";
-    typeAnnotation->dump(os, indent + 2);
+    type_annotation->dump(os, indent + 2);
     os << Pad(indent + 2) << "identifiers: [" << std::endl;
 
     for (auto identifier : identifiers)
@@ -189,7 +189,7 @@ namespace AST
 
   eval::Result ProcedureDeclaration::evaluate(eval::Context &ctx)
   {
-    ctx.define_procedure(name->name, range, [this](auto &ctx, const auto &args, const auto &callRange) -> eval::Result
+    ctx.define_procedure(name->name, range, [this](auto &ctx, const auto &args, const auto &call_range) -> eval::Result
                          {
         size_t parameter_count = 0;
         for(auto param : parameters)
@@ -198,7 +198,7 @@ namespace AST
         if (args.size() != parameter_count)
           throw eval::InterpreterError("Expected " + std::to_string(parameter_count) +
                                         " arguments but got " + std::to_string(args.size()),     
-                                        callRange);
+                                        call_range);
 
         eval::Context child_ctx(&ctx);
 
@@ -211,13 +211,13 @@ namespace AST
           {
             auto arg = args[arg_index];
             arg_index++;
-            child_ctx.assign_variable(identifier->name, arg, callRange);
+            child_ctx.assign_variable(identifier->name, arg, call_range);
           }
         }
 
-        for (auto localVar : localVariables)
+        for (auto local_var : local_variables)
         {
-          localVar->evaluate(child_ctx);
+          local_var->evaluate(child_ctx);
         }
 
         return body->evaluate(child_ctx); });
@@ -240,11 +240,11 @@ namespace AST
     }
     os << Pad(indent + 2) << "]" << std::endl;
 
-    os << Pad(indent + 2) << "localVariables: [" << std::endl;
-    for (auto localVar : localVariables)
+    os << Pad(indent + 2) << "local_variables: [" << std::endl;
+    for (auto local_var : local_variables)
     {
       os << Pad(indent + 4);
-      localVar->dump(os, indent + 4);
+      local_var->dump(os, indent + 4);
     }
     os << Pad(indent + 2) << "]" << std::endl;
 
@@ -392,14 +392,14 @@ namespace AST
       argValues.push_back(arg->evaluate(ctx));
     }
 
-    return ctx.call_procedure(procedureName->name, argValues, range);
+    return ctx.call_procedure(procedure_name->name, argValues, range);
   }
 
   void CallStatement::dump(std::ostream &os, int indent) const
   {
     os << "CallStatement(" << std::endl;
-    os << Pad(indent + 2) << "procedureName: ";
-    procedureName->dump(os, indent + 2);
+    os << Pad(indent + 2) << "procedure_name: ";
+    procedure_name->dump(os, indent + 2);
 
     os << Pad(indent + 2) << "arguments: [" << std::endl;
     for (const auto arg : arguments)
@@ -422,9 +422,9 @@ namespace AST
 
   eval::Result IfStatement::evaluate(eval::Context &ctx)
   {
-    auto conditionValue = condition->evaluate(ctx);
+    auto condition_value = condition->evaluate(ctx);
 
-    if (conditionValue.is_truthy())
+    if (condition_value.is_truthy())
       return consequent->evaluate(ctx);
     else if (alternate != nullptr)
       return alternate->evaluate(ctx);
@@ -451,12 +451,12 @@ namespace AST
 
   eval::Result WhileStatement::evaluate(eval::Context &ctx)
   {
-    eval::Result conditionValue = condition->evaluate(ctx);
+    eval::Result condition_value = condition->evaluate(ctx);
 
-    while (conditionValue.is_truthy())
+    while (condition_value.is_truthy())
     {
       body->evaluate(ctx);
-      conditionValue = condition->evaluate(ctx);
+      condition_value = condition->evaluate(ctx);
     }
 
     return eval::Result();
@@ -477,21 +477,21 @@ namespace AST
   eval::Result ForStatement::evaluate(eval::Context &ctx)
   {
     initialization->evaluate(ctx);
-    const std::string &varName = initialization->variable->name;
-    Range varRange = initialization->variable->range;
+    const std::string &var_name = initialization->variable->name;
+    Range var_range = initialization->variable->range;
 
-    eval::Result initialValue = ctx.get_variable(varName, varRange);
-    eval::Result targetValue = target->evaluate(ctx);
-    bool isForward = (initialValue <= targetValue).is_truthy();
-    eval::Result step(isForward ? 1L : -1L);
-    eval::Result currentValue = initialValue;
+    eval::Result initial_value = ctx.get_variable(var_name, var_range);
+    eval::Result target_value = target->evaluate(ctx);
+    bool is_forward = (initial_value <= target_value).is_truthy();
+    eval::Result step(is_forward ? 1L : -1L);
+    eval::Result current_value = initial_value;
 
-    while (isForward ? currentValue.as_double() < targetValue.as_double()
-                     : currentValue.as_double() > targetValue.as_double())
+    while (is_forward ? current_value.as_double() < target_value.as_double()
+                      : current_value.as_double() > target_value.as_double())
     {
       body->evaluate(ctx);
-      currentValue = ctx.get_variable(varName, varRange) + step;
-      ctx.assign_variable(varName, currentValue, varRange);
+      current_value = ctx.get_variable(var_name, var_range) + step;
+      ctx.assign_variable(var_name, current_value, var_range);
     }
 
     return eval::Result();
