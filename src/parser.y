@@ -255,8 +255,8 @@ statement:
   | if_statement {
     $$ = $1;
   }
-  | IDENTIFIER ";" {
-    Range range = range_from(@1, @2);
+  | IDENTIFIER {
+    Range range = range_from(@1, @1);
     $$ = new AST::IdentifierStatement(range, $1);
     driver.track_node($$);
   }
