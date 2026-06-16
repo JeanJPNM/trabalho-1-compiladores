@@ -12,6 +12,8 @@
   #define YY_USER_ACTION loc.columns(yyleng);
 %}
 
+%x COMMENT
+
 %%
 
 %{
@@ -19,9 +21,18 @@
   loc.step();
 %}
 
-"{"[^\}]*"}" { loc.step(); };
-[ \t] { loc.step(); };
-\n+ { loc.lines(yyleng); loc.step(); };
+"{" { BEGIN(COMMENT); }
+<COMMENT>"}" { loc.step(); BEGIN(INITIAL); }
+<COMMENT>\r\n|\n { loc.lines(1); loc.step(); }
+<COMMENT>[^\}\n]+ { }
+<COMMENT><<EOF>> {
+  BEGIN(INITIAL);
+
+  return driver.make_error("{", LexerError::UnterminatedComment);
+}
+
+[ \t]+ { loc.step(); };
+\r\n|\n { loc.lines(1); loc.step(); };
 
 [0-9]+\.[0-9]+ {
   return driver.make_double_literal(yytext);
@@ -40,7 +51,7 @@
 }
 
 . {
-  return driver.make_error(yytext);
+  return driver.make_error(yytext, LexerError::UnexpectedCharacter);
 }
 
 <<EOF>> {
@@ -49,7 +60,7 @@
 
 %%
 
-void Driver::scan_begin ()
+void Driver::scan_begin()
 {
   yy_flex_debug = trace_scanning;
   if (filename.empty() || filename == "-")
@@ -63,7 +74,7 @@ void Driver::scan_begin ()
   }
 }
 
-void Driver::scan_end ()
+void Driver::scan_end()
 {
   fclose(yyin);
 }

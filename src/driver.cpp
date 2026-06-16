@@ -94,9 +94,14 @@ void Driver::log_token(const yy::parser::symbol_type &token, const std::string &
   if (!trace_tokens)
     return;
 
-  const char *name;
-  if (token.kind() == yy::parser::symbol_kind::S_YYUNDEF)
-    name = "erro";
+  std::string name;
+
+  if (token.kind() == yy::parser::symbol_kind::S_INVALID)
+  {
+    auto error_code = token.value.as<LexerError>();
+    name = "error: ";
+    name += to_string(error_code);
+  }
   else
     name = token.name();
   std::cout << source << " - " << name << std::endl;
@@ -122,22 +127,37 @@ yy::parser::symbol_type Driver::make_keyword_or_identifier(const std::string &s)
 
 yy::parser::symbol_type Driver::make_double_literal(const std::string &s)
 {
-  auto node = new AST::NumberLiteral(range(), std::stod(s));
-  track_node(node);
-  auto token = yy::parser::make_NUMBER(node, location);
+  try
+  {
 
-  log_token(token, s);
-  return token;
+    auto node = new AST::NumberLiteral(range(), std::stod(s));
+    track_node(node);
+    auto token = yy::parser::make_NUMBER(node, location);
+
+    log_token(token, s);
+    return token;
+  }
+  catch (const std::out_of_range &)
+  {
+    return make_error(s, LexerError::OutOfRangeNumber);
+  }
 }
 
 yy::parser::symbol_type Driver::make_integer_literal(const std::string &s)
 {
-  auto node = new AST::NumberLiteral(range(), std::stol(s));
-  track_node(node);
-  auto token = yy::parser::make_NUMBER(node, location);
+  try
+  {
+    auto node = new AST::NumberLiteral(range(), std::stol(s));
+    track_node(node);
+    auto token = yy::parser::make_NUMBER(node, location);
 
-  log_token(token, s);
-  return token;
+    log_token(token, s);
+    return token;
+  }
+  catch (const std::out_of_range &)
+  {
+    return make_error(s, LexerError::OutOfRangeNumber);
+  }
 }
 
 yy::parser::symbol_type Driver::make_punctuation_token(const std::string &s)
@@ -145,15 +165,15 @@ yy::parser::symbol_type Driver::make_punctuation_token(const std::string &s)
   auto it = tokens.find(s);
   yy::parser::symbol_type token =
       it != tokens.end() ? it->second(location)
-                         : yy::parser::make_YYerror(location);
+                         : yy::parser::make_INVALID(LexerError::UnexpectedCharacter, location);
 
   log_token(token, s);
   return token;
 }
 
-yy::parser::symbol_type Driver::make_error(const std::string &s)
+yy::parser::symbol_type Driver::make_error(const std::string &s, LexerError code)
 {
-  auto token = yy::parser::make_YYUNDEF(location);
+  auto token = yy::parser::make_INVALID(code, location);
   log_token(token, s);
 
   return token;

@@ -13,6 +13,7 @@
   #include <vector>
   #include <utility>
   #include "nodes.hpp"
+  #include "lexer_error.hpp"
 
   class Driver;
 }
@@ -28,12 +29,13 @@
 %param { Driver& driver }
 
 %define parse.trace
-%define parse.error detailed
+%define parse.error custom
 %define parse.lac full
 
 %locations
 
 
+%token <LexerError> INVALID "invalid token"
 %token <AST::Identifier *> IDENTIFIER "id"
 %token <AST::NumberLiteral *> NUMBER "num"
 %token K_PROGRAM "program"
@@ -373,4 +375,33 @@ Range yy::range_from(const yy::location &first, const yy::location &last)
     Position(first.begin.line, first.begin.column),
     Position(last.end.line, last.end.column)
   );
+}
+
+void yy::parser::report_syntax_error(const yy::parser::context& ctx) const
+{
+  std::cerr << ctx.location() << " - ";
+
+  const symbol_type &lookahead = ctx.lookahead();
+  std::cerr << "syntax error: unexpected " << symbol_name(lookahead.kind());
+
+  // show error token kind if applicable
+  if (lookahead.kind() == symbol_kind::S_INVALID)
+  {
+    auto error_code = lookahead.value.as<LexerError>();
+    std::cerr << " (" << to_string(error_code) << ")";
+  }
+
+  // show expected tokens
+  const int TOKEN_LIMIT = 10;
+  symbol_kind_type expected[TOKEN_LIMIT];
+  int num_expected = ctx.expected_tokens(expected, TOKEN_LIMIT);
+
+  if (num_expected > 0) {
+      std::cerr << ", expecting ";
+      for (int i = 0; i < num_expected; ++i) {
+          if (i > 0) std::cerr << " or ";
+          std::cerr << symbol_name(expected[i]);
+      }
+  }
+  std::cerr << "\n";
 }
