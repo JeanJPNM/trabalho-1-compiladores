@@ -40,10 +40,16 @@
 [0-9]+ {
   return driver.make_integer_literal(yytext);
 }
+[0-9]+[0-9a-zA-Z.@#$]+ {
+  return driver.make_error(yytext, LexerError::MalformedNumber);
+}
 
 [a-zA-Z][a-zA-Z0-9]* {
   std::string name(yytext);
   return driver.make_keyword_or_identifier(name);
+}
+[a-zA-Z][a-zA-Z0-9@#$]+ {
+  return driver.make_error(yytext, LexerError::MalformedIdentifier);
 }
 
 [;(),:=*/+\-<>\.]|:=|==|<>|<=|>= {
