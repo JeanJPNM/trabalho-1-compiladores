@@ -258,14 +258,21 @@ statement:
   | if_statement {
     $$ = $1;
   }
-  | IDENTIFIER {
-    Range range = range_from(@1, @1);
-    $$ = new AST::IdentifierStatement(range, $1);
-    driver.track_node($$);
-  }
   | IDENTIFIER "(" argument_list ")" {
     Range range = range_from(@1, @4);
     $$ = new AST::CallStatement(range, $1, std::move($3));
+    driver.track_node($$);
+  }
+  | IDENTIFIER {
+    // since the grammar doesn't support calls
+    // that don't have at least one parameter
+    // we can use this explicitly defined, but odd
+    // syntax to support that behavior
+    // specially since the alternative (identifier statements)
+    // would just be useless
+
+    Range range = range_from(@1, @1);
+    $$ = new AST::CallStatement(range, $1, std::vector<AST::Identifier *>());
     driver.track_node($$);
   }
   | K_FOR assignment K_TO expression K_DO statement {

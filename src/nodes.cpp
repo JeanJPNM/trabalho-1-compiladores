@@ -413,14 +413,6 @@ namespace AST
     os << Pad(indent) << ")" << std::endl;
   }
 
-  void IdentifierStatement::dump(std::ostream &os, int indent) const
-  {
-    os << "IdentifierStatement(" << std::endl;
-    os << Pad(indent + 2) << "identifier: ";
-    identifier->dump(os, indent + 2);
-    os << Pad(indent) << ")" << std::endl;
-  }
-
   eval::Result IfStatement::evaluate(eval::Context &ctx)
   {
     auto condition_value = condition->evaluate(ctx);

@@ -28,7 +28,6 @@ namespace AST
   class ReadStatement;
   class WriteStatement;
   class CallStatement;
-  class IdentifierStatement;
   class IfStatement;
   class WhileStatement;
   class ForStatement;
@@ -275,17 +274,6 @@ namespace AST
         : procedure_name(procedure_name), arguments(std::move(arguments)), Statement(range) {}
 
     eval::Result evaluate(eval::Context &ctx) override;
-    void dump(std::ostream &os, int indent) const override;
-  };
-
-  // handles statements that are just identifiers, like "x;" or "foo;"
-  // not sure why this even needs to exist
-  class IdentifierStatement : public Statement
-  {
-  public:
-    Identifier *identifier;
-    IdentifierStatement(Range range, Identifier *identifier) : identifier(identifier), Statement(range) {}
-
     void dump(std::ostream &os, int indent) const override;
   };
 
