@@ -1,5 +1,5 @@
 all: mkgen parser lexer
-	g++ -std=c++17 src/*.cpp src/gen/*.cpp -I src/gen -I src -g -o trabalho -lfl
+	g++ -std=c++17 src/*.cpp src/gen/*.cpp -I src/gen -I src -g -o lalg -lfl
 
 mkgen:
 	mkdir -p src/gen

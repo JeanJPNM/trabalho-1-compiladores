@@ -15,7 +15,7 @@ Para compilar, rode o comando a seguir
 make
 ```
 
-isso gerará um executável `trabalho` na pasta do projeto.
+isso gerará um executável `lalg` na pasta do projeto.
 
 ## Uso
 
@@ -42,7 +42,7 @@ end.
 ```
 #### Imprimindo tokens
 ```sh
-./trabalho dump-tokens input.txt
+./lalg dump-tokens input.txt
 ```
 
 ```
@@ -81,7 +81,7 @@ end - end
 
 #### Imprimindo AST
 ```sh
-./trabalho dump-ast input.txt
+./lalg dump-ast input.txt
 ```
 
 ```
@@ -123,7 +123,7 @@ Program(
 
 #### Interpretando código
 ```sh
-echo "1 2" | ./trabalho run input.txt
+echo "1 2" | ./lalg run input.txt
 ```
 
 ```
