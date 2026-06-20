@@ -89,8 +89,8 @@ namespace eval
   InterpreterError::InterpreterError(const std::string &message, Range range)
       : range(range),
         message(message),
-        filename("-"),
-        what_message("InterpreterError: " + message + " at <stdin>:" + range.start.to_string())
+        filename(STDIN_FILENAME),
+        what_message("InterpreterError: " + message + " at " STDIN_FILENAME + range.start.to_string())
   {
   }
 
@@ -98,12 +98,7 @@ namespace eval
   {
     this->filename = filename;
     what_message = "InterpreterError: " + message + " at ";
-
-    if (filename != "-")
-      what_message += filename + ":";
-    else
-      what_message += "<stdin>:";
-
+    what_message += filename + ":";
     what_message += range.start.to_string();
   }
 

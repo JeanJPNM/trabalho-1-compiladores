@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 
+#define STDIN_FILENAME "<stdin>"
+
 struct Pad
 {
   int n;

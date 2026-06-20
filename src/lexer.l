@@ -1,4 +1,5 @@
 %{
+  #include "cli.hpp"
   #include "nodes.hpp"
   #include "driver.hpp"
   #include "parser.hpp"
@@ -69,7 +70,7 @@
 void Driver::scan_begin()
 {
   yy_flex_debug = trace_scanning;
-  if (filename.empty() || filename == "-")
+  if (filename.empty() || filename == STDIN_FILENAME)
   {
     yyin = stdin;
   }

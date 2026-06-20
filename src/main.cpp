@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
   }
 
   auto subcommand = args[0];
-  std::string filename = args.size() > 1 ? args[1] : "-";
+  std::string filename = args.size() > 1 ? args[1] : STDIN_FILENAME;
 
   if (subcommand == "run")
   {

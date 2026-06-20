@@ -7,6 +7,7 @@
 #include <variant>
 #include <functional>
 #include <stdexcept>
+#include "cli.hpp"
 #include "range.hpp"
 
 namespace eval
