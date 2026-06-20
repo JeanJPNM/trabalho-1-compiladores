@@ -165,8 +165,8 @@ namespace AST
     void dump(std::ostream &os, int indent) const override;
   };
 
-  // não precisa herdar de Declaration porque é usado
-  // exclusivamente em ProcedureDeclaration
+  // no need to inherit declaration because it's only used in
+  // ProcedureDeclaration
   class ParameterDeclaration : public Node
   {
   public:
@@ -250,9 +250,9 @@ namespace AST
     void dump(std::ostream &os, int indent) const override;
   };
 
-  // isso poderia ser uma chamada de função, mas a spec especifica ela como uma
-  // coisa separada, sem falar que isso nos livra de ter que
-  // lidar com o conceito de funções "nativas" no interpretador
+  // could be a function call, but the grammar defines it as a separate thing,
+  // and it also saves us from having to deal with the concept of
+  // "native" functions in the interpreter
   class WriteStatement : public Statement
   {
   public:
@@ -278,6 +278,8 @@ namespace AST
     void dump(std::ostream &os, int indent) const override;
   };
 
+  // handles statements that are just identifiers, like "x;" or "foo;"
+  // not sure why this even needs to exist
   class IdentifierStatement : public Statement
   {
   public:
@@ -292,7 +294,7 @@ namespace AST
   public:
     Condition *condition;
     Statement *consequent;
-    /// Pode ser nulo
+    /// can be null if there is no else branch
     Statement *alternate;
 
     IfStatement(Range range, Condition *condition, Statement *consequent, Statement *alternate)

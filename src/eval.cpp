@@ -1,5 +1,7 @@
 #include "eval.hpp"
 
+// reusable macro to define binary operators
+// performs type casting and empty value propagation
 #define RESULT_OPERATOR(op)                             \
   Result Result::operator op(const Result &other) const \
   {                                                     \
@@ -133,6 +135,7 @@ namespace eval
     auto it = variables.find(name);
     if (it != variables.end())
     {
+      // ensure type compatibility
       if (!it->second.same_type(value))
         throw eval::InterpreterError(
             "Cannot assign value of different type to variable: " +
@@ -143,6 +146,7 @@ namespace eval
     }
     else if (parent)
     {
+      // variable may belong to parent scope
       parent->assign_variable(name, value, range);
     }
     else
@@ -154,13 +158,12 @@ namespace eval
   Result Context::get_variable(const std::string &name, const Range &range) const
   {
     auto it = variables.find(name);
-    if (it == variables.end())
-    {
-      if (parent)
-        return parent->get_variable(name, range);
-      throw eval::InterpreterError("Undefined variable: " + name, range);
-    }
-    return it->second;
+    if (it != variables.end())
+      return it->second;
+
+    if (parent)
+      return parent->get_variable(name, range);
+    throw eval::InterpreterError("Undefined variable: " + name, range);
   }
 
   void Context::define_procedure(const std::string &name, const Range &range, ProcedureRunner proc)

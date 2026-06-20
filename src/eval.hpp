@@ -14,6 +14,7 @@ namespace eval
 {
   class Result
   {
+    // monostate represents an empty result
     std::variant<std::monostate, double, long> value;
 
   public:
@@ -48,6 +49,8 @@ namespace eval
   };
 
   class Context;
+  // receives the context of the caller, the arguments and the range
+  // of the call for better error reporting
   typedef std::function<Result(Context &, std::vector<Result>, const Range &)> ProcedureRunner;
 
   class InterpreterError : public std::exception
@@ -61,6 +64,8 @@ namespace eval
 
     InterpreterError(const std::string &message, Range range);
 
+    // the AST nodes don't have access to the filename during evaluation
+    // so it is set by the main function when the error is caught
     void set_filename(const std::string &filename);
 
     const char *what() const noexcept override;
@@ -68,9 +73,14 @@ namespace eval
 
   class Context
   {
+    // parent context for nested scopes, nullptr for global scope
     Context *parent = nullptr;
+    // which variables are readonly
     std::set<std::string> constants;
+    // variable and constant values
     std::map<std::string, Result> variables;
+    // since the language doesn't support higher order functions,
+    // procedures and variables can exist in two different namespaces
     std::map<std::string, ProcedureRunner> procedures;
 
   public:

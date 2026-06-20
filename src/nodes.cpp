@@ -202,10 +202,10 @@ namespace AST
 
         eval::Context child_ctx(&ctx);
 
+        // assign arguments to parameters in the new context
         size_t arg_index = 0;
         for (auto param : parameters)
         {
-          // declara a variável no escopo do procedimento
           param->evaluate(child_ctx);
           for (auto identifier : param->identifiers)
           {
@@ -318,6 +318,7 @@ namespace AST
       auto &name = variable->name;
       auto value = variable->evaluate(ctx);
 
+      // read the right type of input based on the variable's type
       if (value.is_double())
       {
         double input;
@@ -482,6 +483,7 @@ namespace AST
 
     eval::Result initial_value = ctx.get_variable(var_name, var_range);
     eval::Result target_value = target->evaluate(ctx);
+    // support both forward and backward loops
     bool is_forward = (initial_value <= target_value).is_truthy();
     eval::Result step(is_forward ? 1L : -1L);
     eval::Result current_value = initial_value;

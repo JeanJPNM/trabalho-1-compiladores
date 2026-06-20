@@ -22,6 +22,7 @@
   #include "driver.hpp"
 
   namespace yy {
+    // utility to convert token ranges into AST ranges
     Range range_from(const yy::location &start, const yy::location &end);
   };
 }
@@ -30,6 +31,7 @@
 
 %define parse.trace
 %define parse.error custom
+// needed for next expected token list to actually work
 %define parse.lac full
 
 %locations
@@ -74,6 +76,7 @@
 %token OP_GT ">"
 %token OP_GE ">="
 
+// fix dangling else shift/reduce conflict
 %precedence K_THEN
 %precedence K_ELSE
 
@@ -384,7 +387,7 @@ void yy::parser::report_syntax_error(const yy::parser::context& ctx) const
   const symbol_type &lookahead = ctx.lookahead();
   std::cerr << "syntax error: unexpected " << symbol_name(lookahead.kind());
 
-  // show error token kind if applicable
+  // Exibe o código de erro léxico original propagado pelo token
   if (lookahead.kind() == symbol_kind::S_INVALID)
   {
     auto error_code = lookahead.value.as<LexerError>();

@@ -74,6 +74,7 @@ void Driver::dump_tokens(const std::string &filename)
 
   scan_begin();
 
+  // print all tokens until EOF is reached
   while (true)
   {
     auto token = yylex(*this);
@@ -98,7 +99,7 @@ void Driver::log_token(const yy::parser::symbol_type &token, const std::string &
 
   if (token.kind() == yy::parser::symbol_kind::S_INVALID)
   {
-    auto error_code = token.value.as<LexerError>();
+    LexerError error_code = token.value.as<LexerError>();
     name = "error: ";
     name += to_string(error_code);
   }
@@ -139,6 +140,7 @@ yy::parser::symbol_type Driver::make_double_literal(const std::string &s)
   }
   catch (const std::out_of_range &)
   {
+    // Evita crash convertendo estouro de limites reais em erro léxico
     return make_error(s, LexerError::OutOfRangeNumber);
   }
 }
@@ -156,6 +158,7 @@ yy::parser::symbol_type Driver::make_integer_literal(const std::string &s)
   }
   catch (const std::out_of_range &)
   {
+    // Evita crash convertendo estouro de limites inteiros em erro léxico
     return make_error(s, LexerError::OutOfRangeNumber);
   }
 }

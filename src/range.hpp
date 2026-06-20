@@ -12,6 +12,8 @@ public:
   std::string to_string() const;
 };
 
+// implemented to not make the AST depend on bison's location class
+// to avoid circular dependencies
 class Range
 {
 public:

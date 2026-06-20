@@ -10,6 +10,7 @@
 %option debug
 
 %{
+  // sync column with size of token
   #define YY_USER_ACTION loc.columns(yyleng);
 %}
 
@@ -27,6 +28,8 @@
 <COMMENT>\r\n|\n { loc.lines(1); loc.step(); }
 <COMMENT>[^\}\n]+ { }
 <COMMENT><<EOF>> {
+  // unterminated comment found,
+  // return to the initial state to emit EOF token
   BEGIN(INITIAL);
 
   return driver.make_error("{", LexerError::UnterminatedComment);
@@ -42,6 +45,8 @@
   return driver.make_integer_literal(yytext);
 }
 [0-9]+[0-9a-zA-Z.@#$]+ {
+  // match malformed numbers,
+  // has lower priority than the previous rules
   return driver.make_error(yytext, LexerError::MalformedNumber);
 }
 
@@ -50,6 +55,8 @@
   return driver.make_keyword_or_identifier(name);
 }
 [a-zA-Z][a-zA-Z0-9@#$]+ {
+  // match malformed identifiers,
+  // has lower priority than the previous rules
   return driver.make_error(yytext, LexerError::MalformedIdentifier);
 }
 
@@ -67,6 +74,7 @@
 
 %%
 
+// basic flex setup needed before scanning
 void Driver::scan_begin()
 {
   yy_flex_debug = trace_scanning;
