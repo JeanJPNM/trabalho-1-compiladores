@@ -41,6 +41,9 @@ public:
   bool trace_scanning;
   // when true, logs tokens as they are scanned
   bool trace_tokens;
+  // set whenever a parsing error occurs, regardless
+  // if whether the error is recoverable or not
+  bool has_error;
   AST::Program *program;
 
   Driver();

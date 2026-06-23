@@ -79,6 +79,9 @@
 // fix dangling else shift/reduce conflict
 %precedence K_THEN
 %precedence K_ELSE
+// fix empty list error shift/reduce conflict
+%precedence CONST_VAR_CONFLICT
+%precedence error
 
 %nterm program
 %nterm <std::vector<AST::Declaration *>> program_declarations
@@ -142,9 +145,17 @@ constant_declaration:
     Range range = range_from(@1, @5);
     $$ = new AST::ConstantDeclaration(range, $2, $4);
     driver.track_node($$);
+  }
+  | error ";" {
+    Range range = range_from(@1, @2);
+    $$ = new AST::ErrorConstantDeclaration(range);
+    driver.track_node($$);
+
+    yyerrok;
   };
 
 variable_declarations:
+  %prec CONST_VAR_CONFLICT
   {
     $$ = std::vector<AST::VariableDeclaration *>();
   }
@@ -158,6 +169,13 @@ variable_declaration:
     Range range = range_from(@1, @4);
     $$ = new AST::VariableDeclaration(range, std::move($2), $3);
     driver.track_node($$);
+  }
+  | error ";" {
+    Range range = range_from(@1, @2);
+    $$ = new AST::ErrorVariableDeclaration(range);
+    driver.track_node($$);
+
+    yyerrok;
   };
 
 identifiers:
@@ -228,6 +246,17 @@ block:
     Range range = range_from(@1, @3);
     $$ = new AST::Block(range, std::move($2));
     driver.track_node($$);
+  }
+  | K_BEGIN statements error K_END {
+    Range range = range_from(@1, @4);
+    Range error_range = range_from(@3, @3);
+
+    auto error_node = new AST::ErrorStatement(error_range);
+    driver.track_node(error_node);
+    $2.push_back(error_node);
+
+    $$ = new AST::Block(range, std::move($2));
+    driver.track_node($$);
   };
 
 statements:
@@ -237,6 +266,16 @@ statements:
   | statements statement ";" {
     $1.push_back($2);
     $$ = std::move($1);
+  }
+  | statements error ";" {
+    Range range = range_from(@2, @3);
+    auto error_node = new AST::ErrorStatement(range);
+    driver.track_node(error_node);
+
+    $1.push_back(error_node);
+    $$ = std::move($1);
+
+    yyerrok;
   };
 
 statement:
@@ -389,6 +428,7 @@ Range yy::range_from(const yy::location &first, const yy::location &last)
 
 void yy::parser::report_syntax_error(const yy::parser::context& ctx) const
 {
+  driver.has_error = true;
   std::cerr << ctx.location() << " - ";
 
   const symbol_type &lookahead = ctx.lookahead();

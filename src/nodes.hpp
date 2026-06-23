@@ -369,6 +369,56 @@ namespace AST
     eval::Result evaluate(eval::Context &ctx) override;
     void dump(std::ostream &os, int indent) const override;
   };
+
+  class ErrorConstantDeclaration : public ConstantDeclaration
+  {
+  public:
+    ErrorConstantDeclaration(Range range)
+        : ConstantDeclaration(range, nullptr, nullptr) {}
+
+    eval::Result evaluate(eval::Context &ctx) override
+    {
+      throw eval::InterpreterError("Attempt to evaluate syntax error constant declaration", range);
+    }
+
+    void dump(std::ostream &os, int indent) const override
+    {
+      os << "Error()" << std::endl;
+    }
+  };
+
+  class ErrorVariableDeclaration : public VariableDeclaration
+  {
+  public:
+    ErrorVariableDeclaration(Range range)
+        : VariableDeclaration(range, {}, nullptr) {}
+
+    eval::Result evaluate(eval::Context &ctx) override
+    {
+      throw eval::InterpreterError("Attempt to evaluate syntax error variable declaration", range);
+    }
+
+    void dump(std::ostream &os, int indent) const override
+    {
+      os << "Error()" << std::endl;
+    }
+  };
+
+  class ErrorStatement : public Statement
+  {
+  public:
+    ErrorStatement(Range range) : Statement(range) {}
+
+    eval::Result evaluate(eval::Context &ctx) override
+    {
+      throw eval::InterpreterError("Attempt to evaluate syntax error statement", range);
+    }
+
+    void dump(std::ostream &os, int indent) const override
+    {
+      os << "Error()" << std::endl;
+    }
+  };
 }
 
 #endif

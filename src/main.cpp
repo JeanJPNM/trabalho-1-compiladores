@@ -51,7 +51,7 @@ void run(const std::string &filename)
 {
   Driver driver;
   driver.parse(filename);
-  if (driver.program)
+  if (driver.program && !driver.has_error)
   {
     try
     {

@@ -4,6 +4,7 @@ Driver::Driver()
     : trace_parsing(false),
       trace_scanning(false),
       trace_tokens(false),
+      has_error(false),
       program(nullptr)
 {
   using p = yy::parser;
